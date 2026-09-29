@@ -1,0 +1,26 @@
+# Build Maven / Gradle
+target/
+build/
+.gradle/
+out/
+bin/
+
+# Java
+*.class
+*.log
+hs_err_pid*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
