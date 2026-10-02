@@ -9,6 +9,7 @@ RPG futuriste en vue de dessus, en Java + JavaFX. Projet « 2D Game » (POO), pa
 | Document | Contenu | Statut |
 | --- | --- | --- |
 | [docs/gdd.md](docs/gdd.md) | Game Design Document : règles, robots, combat, monde | Terminé (validation pédago en attente) |
+| [Planning (Notion)](https://app.notion.com/p/3e9101f22991802991afdfc6bca8978c) | Tâches semaine par semaine, répartition, priorités, jalons | En cours |
 | docs/architecture.md | Architecture, UML, design patterns |  À faire (BMAD) |
 
 ## Stack prévue
@@ -21,7 +22,8 @@ RPG futuriste en vue de dessus, en Java + JavaFX. Projet « 2D Game » (POO), pa
 ## Avancement
 
 - [x] Game Design Document
-- [ ] Installation de BMAD (Game Dev Studio)
+- [x] Installation de BMAD (Game Dev Studio)
+- [x] Planning sur 3 semaines et tâches (Notion)
 - [ ] Architecture + diagrammes UML
 - [ ] Découpage en epics / stories
 - [ ] Développement
