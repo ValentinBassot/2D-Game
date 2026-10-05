@@ -33,4 +33,5 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/release.yml
-    secrets: inherit
+    secrets:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
