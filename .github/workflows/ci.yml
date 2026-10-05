@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [release]
+  pull_request:
+    branches: [dev, release]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Never cancel a run on release: it may be in the middle of promoting to main.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    uses: ./.github/workflows/test.yml
+
+  security:
+    uses: ./.github/workflows/security.yml
+
+  sbom:
+    uses: ./.github/workflows/sbom.yml
+
+  release:
+    needs: [lint, test, security, sbom]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    secrets:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}

@@ -74,6 +74,23 @@
                 </executions>
             </plugin>
 
+            <!-- Checkstyle : vérifie le style avec "mvn checkstyle:check" (règles dans checkstyle.xml) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.6.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>10.21.0</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                </configuration>
+            </plugin>
+
             <!-- Lance le jeu avec "mvn javafx:run" -->
             <plugin>
                 <groupId>org.openjfx</groupId>
