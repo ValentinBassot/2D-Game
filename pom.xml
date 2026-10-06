@@ -4,12 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!--  Identité du projet -->
     <groupId>com.reboot</groupId>
     <artifactId>reboot</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <!-- ☕ Réglages -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
@@ -17,9 +15,7 @@
         <junit.version>5.11.3</junit.version>
     </properties>
 
-    <!--  Liste de courses -->
     <dependencies>
-        <!-- JavaFX : l'affichage (partie de Valentin) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -31,7 +27,6 @@
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- JUnit 5 : les tests (seulement pour les tests, pas dans le jeu) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -40,24 +35,20 @@
         </dependency>
     </dependencies>
 
-    <!--  Outils -->
     <build>
         <plugins>
-            <!-- Compile le code en Java 21 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
             </plugin>
 
-            <!-- Lance les tests JUnit 5 avec "mvn test" -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
             </plugin>
 
-            <!-- JaCoCo : rapport de couverture dans target/site/jacoco/index.html -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -74,7 +65,6 @@
                 </executions>
             </plugin>
 
-            <!-- Checkstyle : vérifie le style avec "mvn checkstyle:check" (règles dans checkstyle.xml) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -91,7 +81,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Lance le jeu avec "mvn javafx:run" -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
