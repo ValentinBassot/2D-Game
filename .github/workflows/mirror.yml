@@ -1,0 +1,47 @@
+name: Mirror to Epitech
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+
+concurrency:
+  group: mirror-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    name: Push to the Epitech repository
+    # Only the personal repository mirrors; the Epitech copy must not push to itself.
+    if: github.repository_owner == 'ValentinBassot'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Push the ref
+        run: |
+          if [ -z "$EPITECH_DEPLOY_KEY" ]; then
+            echo "EPITECH_DEPLOY_KEY is not set: nothing mirrored." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          key="$RUNNER_TEMP/epitech_key"
+          hosts="$RUNNER_TEMP/known_hosts"
+          (umask 077 && printf '%s\n' "$EPITECH_DEPLOY_KEY" > "$key")
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > "$hosts"
+          export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            source="$GITHUB_REF"
+          else
+            source="$GITHUB_SHA"
+          fi
+          # No force: fails on purpose if the Epitech branch has commits this one lacks.
+          git push "git@github.com:$EPITECH_REPOSITORY.git" "$source:$GITHUB_REF"
+        env:
+          EPITECH_DEPLOY_KEY: ${{ secrets.EPITECH_DEPLOY_KEY }}
+          EPITECH_REPOSITORY: EpitechBachelorPromo2028/B-OOP-301-LYN-3-1-2dgame-3
