@@ -14,22 +14,28 @@ concurrency:
 permissions:
   contents: read
 
+# Every job runs only on the personal repository: the Epitech copy receives the
+# same workflow files through the mirror and must not run them a second time.
 jobs:
   lint:
+    if: github.repository_owner == 'ValentinBassot'
     uses: ./.github/workflows/lint.yml
 
   test:
+    if: github.repository_owner == 'ValentinBassot'
     uses: ./.github/workflows/test.yml
 
   security:
+    if: github.repository_owner == 'ValentinBassot'
     uses: ./.github/workflows/security.yml
 
   sbom:
+    if: github.repository_owner == 'ValentinBassot'
     uses: ./.github/workflows/sbom.yml
 
   release:
     needs: [lint, test, security, sbom]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    if: github.repository_owner == 'ValentinBassot' && github.event_name == 'push' && github.ref == 'refs/heads/release'
     permissions:
       contents: write
     uses: ./.github/workflows/release.yml
