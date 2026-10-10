@@ -1,32 +1,19 @@
 package com.reboot.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public abstract class Robot extends Combattant {
 
-    public static final Skill FRAPPE = new Skill("Frappe", 10, false);
+    public static final Skill STRIKE = new Skill("Frappe", 10, false);
 
-    private final TypeRobot type;
-    private final List<Skill> competences = new ArrayList<>();
+    private final RobotType type;
 
-    protected Robot(String nom, TypeRobot type, int niveau,
-                    int pvBase, int atkBase, int defBase, int vitBase) {
-        super(nom, niveau, pvBase, atkBase, defBase, vitBase);
+    protected Robot(String name, RobotType type, int level,
+                    int baseHp, int baseAtk, int baseDef, int baseSpeed) {
+        super(name, level, baseHp, baseAtk, baseDef, baseSpeed);
         this.type = type;
-        this.competences.add(FRAPPE);
+        addSkill(STRIKE);
     }
 
-    protected final void ajouterCompetence(Skill competence) {
-        this.competences.add(competence);
-    }
-
-    public TypeRobot getType() {
+    public RobotType getType() {
         return type;
-    }
-
-    public List<Skill> getCompetences() {
-        return Collections.unmodifiableList(competences);
     }
 }

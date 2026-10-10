@@ -2,17 +2,17 @@ package com.reboot.model;
 
 public class HealerBot extends Robot {
 
-    public static final Skill PATCH_RESEAU = new Skill("Patch réseau", 0, false);
-    public static final Skill NANOBOTS_CORROSIFS = new Skill("Nanobots corrosifs", 12, true);
+    public static final Skill NETWORK_PATCH = new Skill("Patch réseau", 0, false);
+    public static final Skill CORROSIVE_NANOBOTS = new Skill("Nanobots corrosifs", 12, true);
 
-    private static final int PV_BASE = 45;
-    private static final int ATK_BASE = 7;
-    private static final int DEF_BASE = 8;
-    private static final int VIT_BASE = 9;
+    private static final int BASE_HP = 45;
+    private static final int BASE_ATK = 7;
+    private static final int BASE_DEF = 8;
+    private static final int BASE_SPEED = 9;
 
-    public HealerBot(int niveau) {
-        super("HealerBot", TypeRobot.HEALER, niveau, PV_BASE, ATK_BASE, DEF_BASE, VIT_BASE);
-        ajouterCompetence(PATCH_RESEAU);
-        ajouterCompetence(NANOBOTS_CORROSIFS);
+    public HealerBot(int level) {
+        super("HealerBot", RobotType.HEALER, level, BASE_HP, BASE_ATK, BASE_DEF, BASE_SPEED);
+        addSkill(NETWORK_PATCH);
+        addSkill(CORROSIVE_NANOBOTS);
     }
 }
