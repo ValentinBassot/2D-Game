@@ -8,62 +8,59 @@ import org.junit.jupiter.api.Test;
 
 class CombattantTest {
 
-    /** Un enfant "bidon", uniquement pour pouvoir tester Combattant. */
-    private static class CombattantDeTest extends Combattant {
-        CombattantDeTest(int niveau) {
-            // mêmes stats de base que le TankBot : 60 PV, 8 ATK, 12 DEF, 4 VIT
-            super("Test", niveau, 60, 8, 12, 4);
+    private static class TestFighter extends Combattant {
+        TestFighter(int level) {
+            super("Test", level, 60, 8, 12, 4);
         }
     }
 
     @Test
-    void niveau1_aSesStatsDeBase() {
-        Combattant c = new CombattantDeTest(1);
-        assertEquals(60, c.getPvMax());
-        assertEquals(60, c.getPv());
+    void levelOne_hasBaseStats() {
+        Combattant c = new TestFighter(1);
+        assertEquals(60, c.getMaxHp());
+        assertEquals(60, c.getHp());
         assertEquals(8, c.getAtk());
         assertEquals(12, c.getDef());
-        assertEquals(4, c.getVit());
+        assertEquals(4, c.getSpeed());
     }
 
     @Test
-    void niveau5_aSesStatsAugmentees() {
-        Combattant c = new CombattantDeTest(5);
-        assertEquals(84, c.getPvMax());   // 60 + 60*4/10
+    void levelFive_hasIncreasedStats() {
+        assertEquals(84, new TestFighter(5).getMaxHp());
     }
 
     @Test
-    void recevoirDegats_enleveDesPv() {
-        Combattant c = new CombattantDeTest(1);
-        c.recevoirDegats(20);
-        assertEquals(40, c.getPv());
-        assertFalse(c.estKO());
+    void takeDamage_removesHp() {
+        Combattant c = new TestFighter(1);
+        c.takeDamage(20);
+        assertEquals(40, c.getHp());
+        assertFalse(c.isKo());
     }
 
     @Test
-    void lesPv_neDescendentJamaisSousZero() {
-        Combattant c = new CombattantDeTest(1);
-        c.recevoirDegats(999);
-        assertEquals(0, c.getPv());
-        assertTrue(c.estKO());
+    void hp_neverGoesBelowZero() {
+        Combattant c = new TestFighter(1);
+        c.takeDamage(999);
+        assertEquals(0, c.getHp());
+        assertTrue(c.isKo());
     }
 
     @Test
-    void soigner_neDepassePasLeMaximum() {
-        Combattant c = new CombattantDeTest(1);
-        c.recevoirDegats(10);   // 50 PV
-        c.soigner(15);          // 65 ? non : plafonné à 60
-        assertEquals(60, c.getPv());
+    void heal_neverExceedsMax() {
+        Combattant c = new TestFighter(1);
+        c.takeDamage(10);
+        c.heal(15);
+        assertEquals(60, c.getHp());
     }
 
     @Test
-    void niveauZero_estRefuse() {
-        assertThrows(IllegalArgumentException.class, () -> new CombattantDeTest(0));
+    void levelZero_isRejected() {
+        assertThrows(IllegalArgumentException.class, () -> new TestFighter(0));
     }
 
     @Test
-    void degatsNegatifs_sontRefuses() {
-        Combattant c = new CombattantDeTest(1);
-        assertThrows(IllegalArgumentException.class, () -> c.recevoirDegats(-5));
+    void negativeDamage_isRejected() {
+        Combattant c = new TestFighter(1);
+        assertThrows(IllegalArgumentException.class, () -> c.takeDamage(-5));
     }
 }
