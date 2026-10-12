@@ -1,20 +1,21 @@
 package com.reboot.model;
 
 public class Skill {
-    private final String nom;
-    private final int puissance;
-    private final boolean ignoreDef;
 
-    public Skill(String nom, int puissance, boolean ignoreDef) {
-        if (puissance < 0) {
-            throw new IllegalArgumentException("La puissance ne peut pas être négative");
+    private final String name;
+    private final int power;
+    private final boolean ignoresDefense;
+
+    public Skill(String name, int power, boolean ignoresDefense) {
+        if (power < 0) {
+            throw new IllegalArgumentException("Power cannot be negative");
         }
-        this.nom = nom;
-        this.puissance = puissance;
-        this.ignoreDef = ignoreDef;
+        this.name = name;
+        this.power = power;
+        this.ignoresDefense = ignoresDefense;
     }
 
-    public String getNom() { return nom; }
-    public int getPuissance() { return puissance; }
-    public boolean ignoreDef() { return ignoreDef; }
+    public String getName() { return name; }
+    public int getPower() { return power; }
+    public boolean ignoresDefense() { return ignoresDefense; }
 }

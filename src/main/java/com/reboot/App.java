@@ -1,25 +1,27 @@
 package com.reboot;
 
+import com.reboot.view.ExplorationView;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 
-/**
- * JavaFX App
- */
 public class App extends Application {
 
     private static Scene scene;
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        scene = new Scene(new StackPane(), ExplorationView.VIEW_WIDTH, ExplorationView.VIEW_HEIGHT);
+        stage.setTitle("Reboot");
         stage.setScene(scene);
+        stage.setResizable(false);
         stage.show();
+        new GameController(scene).start();
     }
 
     static void setRoot(String fxml) throws IOException {

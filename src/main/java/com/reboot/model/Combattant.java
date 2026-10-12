@@ -1,55 +1,68 @@
 package com.reboot.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public abstract class Combattant {
 
-    private final String nom;
-    private final int niveau;
-    private final int pvMax;
-    private int pv;
+    private final String name;
+    private final int level;
+    private final int maxHp;
+    private int hp;
     private final int atk;
     private final int def;
-    private final int vit;
+    private final int speed;
+    private final List<Skill> skills = new ArrayList<>();
 
-    protected Combattant(String nom, int niveau, int pvBase, int atkBase, int defBase, int vitBase) {
-        if (niveau < 1) {
-            throw new IllegalArgumentException("Le niveau doit être au moins 1");
+    protected Combattant(String name, int level, int baseHp, int baseAtk, int baseDef, int baseSpeed) {
+        if (level < 1) {
+            throw new IllegalArgumentException("Level must be at least 1");
         }
-        this.nom = nom;
-        this.niveau = niveau;
-        this.pvMax = statAuNiveau(pvBase, niveau);
-        this.pv = this.pvMax;
-        this.atk = statAuNiveau(atkBase, niveau);
-        this.def = statAuNiveau(defBase, niveau);
-        this.vit = statAuNiveau(vitBase, niveau);
+        this.name = name;
+        this.level = level;
+        this.maxHp = statAtLevel(baseHp, level);
+        this.hp = this.maxHp;
+        this.atk = statAtLevel(baseAtk, level);
+        this.def = statAtLevel(baseDef, level);
+        this.speed = statAtLevel(baseSpeed, level);
     }
 
-    private static int statAuNiveau(int base, int niveau) {
-        return base + base * (niveau - 1) / 10;
+    private static int statAtLevel(int base, int level) {
+        return base + base * (level - 1) / 10;
     }
 
-    public void recevoirDegats(int degats) {
-        if (degats < 0) {
-            throw new IllegalArgumentException("Les dégâts ne peuvent pas être négatifs");
+    public void takeDamage(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Damage cannot be negative");
         }
-        this.pv = Math.max(0, this.pv - degats);
+        this.hp = Math.max(0, this.hp - amount);
     }
 
-    public void soigner(int soin) {
-        if (soin < 0) {
-            throw new IllegalArgumentException("Le soin ne peut pas être négatif");
+    public void heal(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Heal cannot be negative");
         }
-        this.pv = Math.min(this.pvMax, this.pv + soin);
+        this.hp = Math.min(this.maxHp, this.hp + amount);
     }
 
-    public boolean estKO() {
-        return this.pv == 0;
+    public boolean isKo() {
+        return this.hp == 0;
     }
 
-    public String getNom() { return nom; }
-    public int getLevel() { return niveau; }
-    public int getPv() { return pv; }
-    public int getPvMax() { return pvMax; }
+    protected final void addSkill(Skill skill) {
+        this.skills.add(skill);
+    }
+
+    public List<Skill> getSkills() {
+        return Collections.unmodifiableList(skills);
+    }
+
+    public String getName() { return name; }
+    public int getLevel() { return level; }
+    public int getHp() { return hp; }
+    public int getMaxHp() { return maxHp; }
     public int getAtk() { return atk; }
     public int getDef() { return def; }
-    public int getVit() { return vit; }
+    public int getSpeed() { return speed; }
 }

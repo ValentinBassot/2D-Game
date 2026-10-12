@@ -243,7 +243,7 @@ Les ennemis spéciaux ne suivent pas le niveau du réseau, et on ne peut jamais 
 - Une fois le chef vaincu, le data center est détruit : fin du jeu, tous les robots redeviennent bienveillants.
 - Les **3 gardiens** du data center (un par type) n'existent pas en jeu pour le POC (WON'T) : ils apparaissent seulement dans la vidéo de fin.
 
-Côté code, `Boss` redéfinit `getLevel()` pour renvoyer son niveau fixe (polymorphisme).
+Côté code, `Boss` hérite d'`Exosquelette` et redéfinit `getLevel()` pour renvoyer son niveau fixe (polymorphisme).
 
 ## Interface
 
@@ -264,11 +264,11 @@ Graphismes : sprites générés par IA, avec un prompt de style unique réutilis
 
 ## Architecture visée (pour l'étape architecture BMAD)
 
-- `Combattant` (abstraite) → `Robot` (abstraite) → `TankBot`, `HealerBot`, `InfighterBot`, `Boss` ; `Combattant` → `Exosquelette`.
+- `Combattant` (abstraite) → `Robot` (abstraite) → `TankBot`, `HealerBot`, `InfighterBot` ; `Combattant` → `Exosquelette` → `Boss`. Le chef de NEXUS est un humain en exosquelette : il n'a pas d'état de robot et ne peut pas être reprogrammé.
 - **State** : `RobotState` (Détourné / Allié / En réparation) — un ennemi et un allié sont la même classe.
 - **Strategy** : `CombatStrategy`, IA de combat ; aléatoire pour le POC, par type et selon la barre de recherche en bonus.
 - **Factory** : `RobotFactory` crée les rencontres d'une zone (niveau = zone + bonus réseau).
-- **Observer** : `RobotKilledEvent` → `DataCenter` (niveau du réseau), `WantedBar` et le stock de pièces.
+- **Observer** : trois événements, un par action qui fait bouger la barre de recherche. `RobotKilledEvent` → `DataCenter` (niveau du réseau), `WantedBar` (+ 15) et le stock de pièces ; `RobotReprogrammedEvent` → `WantedBar` (− 5) ; `PilotNeutralizedEvent` → `WantedBar` (+ 10).
 - **Composition** : `Player` possède une `Team` de robots ; la `Home` stocke les autres.
 - Séparation modèle / vue JavaFX pour tester la logique sans lancer l'interface. La frontière entre la carte et le combat est une interface (ex. `CombatLauncher`) définie dès le premier jour.
 
