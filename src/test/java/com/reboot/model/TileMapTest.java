@@ -84,6 +84,19 @@ class TileMapTest {
     }
 
     @Test
+    void load_lit_la_carte_de_la_zone_1_avec_son_portail_de_retour_et_de_l_herbe() {
+        TileMap zone = TileMap.load("/com/reboot/maps/zone1.txt");
+        assertEquals(0, zone.portalZoneAt(zone.getSpawnX(), zone.getSpawnY() - 1));
+        boolean grass = false;
+        for (int y = 0; y < zone.getHeight(); y++) {
+            for (int x = 0; x < zone.getWidth(); x++) {
+                grass |= zone.tileAt(x, y) == Tile.ENCOUNTER;
+            }
+        }
+        assertTrue(grass);
+    }
+
+    @Test
     void load_refuse_un_fichier_absent() {
         assertThrows(IllegalArgumentException.class, () -> TileMap.load("/com/reboot/maps/absent.txt"));
     }
