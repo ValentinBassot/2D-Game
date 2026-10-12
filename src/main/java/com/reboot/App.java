@@ -1,5 +1,8 @@
 package com.reboot;
 
+import com.reboot.model.Player;
+import com.reboot.model.TileMap;
+import com.reboot.view.ExplorationView;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,18 +11,21 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-/**
- * JavaFX App
- */
 public class App extends Application {
 
     private static Scene scene;
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        TileMap home = TileMap.load("/com/reboot/maps/home.txt");
+        Player player = new Player(home.getSpawnX(), home.getSpawnY());
+        ExplorationView exploration = new ExplorationView(home, player, "home");
+        scene = new Scene(exploration);
+        stage.setTitle("Reboot");
         stage.setScene(scene);
+        stage.setResizable(false);
         stage.show();
+        exploration.start();
     }
 
     static void setRoot(String fxml) throws IOException {
