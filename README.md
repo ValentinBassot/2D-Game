@@ -12,6 +12,27 @@ RPG futuriste en vue de dessus, en Java + JavaFX. Projet « 2D Game » (POO), pa
 | [Planning (Notion)](https://app.notion.com/p/3e9101f22991802991afdfc6bca8978c) | Tâches semaine par semaine, répartition, priorités, jalons | En cours |
 | docs/architecture.md | Architecture, UML, design patterns |  À faire (BMAD) |
 
+## Lancer le projet
+
+Prérequis : un JDK 21 ou plus récent et Maven. JavaFX est téléchargé par Maven, rien d'autre à installer.
+
+```bash
+# Ubuntu / WSL
+sudo apt install openjdk-21-jdk maven
+```
+
+| Commande | Effet |
+| --- | --- |
+| `mvn javafx:run` | Lance le jeu |
+| `mvn verify` | Compile, lance les tests et génère le rapport de couverture dans `target/site/jacoco/index.html` |
+| `mvn checkstyle:check` | Vérifie les règles de style (comme la CI) |
+
+Le jeu s'ouvre sur la Home. Léon se déplace avec **ZQSD** ou les **flèches**.
+
+Le portail allumé de la Home mène à la zone 1. Marcher dans l'herbe y déclenche des combats : on choisit une attaque avec **1, 2, 3** (ou les flèches puis **Entrée**).
+
+Sous WSL, la fenêtre s'affiche grâce à WSLg (Windows 11, ou Windows 10 à jour) : aucun serveur X à installer.
+
 ## Stack prévue
 
 - Java + JavaFX (interface)
