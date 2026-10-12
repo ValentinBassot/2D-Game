@@ -1,12 +1,11 @@
 package com.reboot;
 
-import com.reboot.model.Player;
-import com.reboot.model.TileMap;
 import com.reboot.view.ExplorationView;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -17,15 +16,12 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        TileMap home = TileMap.load("/com/reboot/maps/home.txt");
-        Player player = new Player(home.getSpawnX(), home.getSpawnY());
-        ExplorationView exploration = new ExplorationView(home, player, "home");
-        scene = new Scene(exploration);
+        scene = new Scene(new StackPane(), ExplorationView.VIEW_WIDTH, ExplorationView.VIEW_HEIGHT);
         stage.setTitle("Reboot");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
-        exploration.start();
+        new GameController(scene).start();
     }
 
     static void setRoot(String fxml) throws IOException {
