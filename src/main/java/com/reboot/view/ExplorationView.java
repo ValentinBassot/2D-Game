@@ -37,6 +37,8 @@ public class ExplorationView extends StackPane {
     private final SpriteStore sprites = new SpriteStore();
     private final Canvas canvas = new Canvas(VIEW_WIDTH, VIEW_HEIGHT);
     private final Deque<Direction> heldDirections = new ArrayDeque<>();
+    private final DiscoveredArea discovered;
+    private final Minimap minimap;
 
     private boolean stepping;
     private double stepProgress;
@@ -63,6 +65,8 @@ public class ExplorationView extends StackPane {
         this.map = map;
         this.player = player;
         this.zonePrefix = zonePrefix;
+        this.discovered = new DiscoveredArea(map.getWidth(), map.getHeight());
+        this.minimap = new Minimap(map, discovered);
         this.canvas.getGraphicsContext2D().setImageSmoothing(false);
         getChildren().add(canvas);
         setFocusTraversable(true);
@@ -165,6 +169,7 @@ public class ExplorationView extends StackPane {
         int firstY = (int) Math.max(0, Math.floorDiv(cameraY, CELL));
         int lastX = (int) Math.min(map.getWidth() - 1, Math.floorDiv(cameraX + VIEW_WIDTH - 1, CELL));
         int lastY = (int) Math.min(map.getHeight() - 1, Math.floorDiv(cameraY + VIEW_HEIGHT - 1, CELL));
+        discovered.reveal(firstX, firstY, lastX, lastY);
         for (int y = firstY; y <= lastY; y++) {
             for (int x = firstX; x <= lastX; x++) {
                 drawTile(gc, x, y, x * CELL - cameraX, y * CELL - cameraY);
@@ -172,6 +177,7 @@ public class ExplorationView extends StackPane {
         }
         sprites.draw(gc, playerSprite(), Math.round(playerX * CELL) - cameraX, Math.round(playerY * CELL) - cameraY,
                 CELL, Color.DODGERBLUE);
+        minimap.draw(gc, VIEW_WIDTH, playerX, playerY);
     }
 
     private void drawTile(GraphicsContext gc, int x, int y, double px, double py) {
