@@ -5,7 +5,7 @@ import com.reboot.model.skill.DamageSkill;
 public class InfighterBot extends Robot {
 
     public static final DamageSkill FLURRY = new DamageSkill("Rafale de coups", 16);
-    public static final DamageSkill HOOK = new DamageSkill("Crochet", 12);
+    public static final DamageSkill HOOK = new DamageSkill("Crochet", 12, false, true);
 
     private static final int BASE_HP = 45;
     private static final int BASE_ATK = 14;

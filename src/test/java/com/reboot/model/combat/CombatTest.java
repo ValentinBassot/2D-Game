@@ -20,6 +20,25 @@ class CombatTest {
         }
     }
 
+    private static class SlowHooker extends Combattant {
+        SlowHooker() {
+            super("Lent", 1, 100, 10, 0, 1);
+            addSkill(InfighterBot.HOOK);
+        }
+    }
+
+    @Test
+    void prioritySkill_actsFirst_evenWhenSlower() {
+        SlowHooker player = new SlowHooker();
+        Dummy enemy = new Dummy("Rapide", 100, 10, 0, 50);
+        Combat combat = new Combat(player, enemy);
+
+        TurnResult result = combat.useSkill(InfighterBot.HOOK);
+
+        assertTrue(result.log().get(0).startsWith("Lent utilise Crochet"));
+        assertEquals(78, enemy.getHp());
+    }
+
     @Test
     void networkPatch_healsTheHealer_andDoesNotHurtTheEnemy() {
         HealerBot player = new HealerBot(1);

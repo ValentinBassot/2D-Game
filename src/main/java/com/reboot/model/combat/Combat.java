@@ -28,7 +28,7 @@ public class Combat {
         List<String> log = new ArrayList<>();
         Skill enemySkill = chooseEnemySkill();
 
-        boolean playerFirst = player.getSpeed() >= enemy.getSpeed();
+        boolean playerFirst = playerActsFirst(skill, enemySkill);
         Combattant first = playerFirst ? player : enemy;
         Combattant second = playerFirst ? enemy : player;
         Skill firstSkill = playerFirst ? skill : enemySkill;
@@ -41,6 +41,13 @@ public class Combat {
         player.endTurn();
         enemy.endTurn();
         return new TurnResult(log, isOver());
+    }
+
+    private boolean playerActsFirst(Skill playerSkill, Skill enemySkill) {
+        if (playerSkill.hasPriority() != enemySkill.hasPriority()) {
+            return playerSkill.hasPriority();
+        }
+        return player.getSpeed() >= enemy.getSpeed();
     }
 
     private Skill chooseEnemySkill() {
