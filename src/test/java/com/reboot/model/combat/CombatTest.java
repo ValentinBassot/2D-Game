@@ -21,6 +21,21 @@ class CombatTest {
     }
 
     @Test
+    void networkPatch_healsTheHealer_andDoesNotHurtTheEnemy() {
+        HealerBot player = new HealerBot(1);
+        TankBot enemy = new TankBot(1);
+        Combat combat = new Combat(player, enemy);
+
+        combat.useSkill(HealerBot.NETWORK_PATCH);
+        assertEquals(35, player.getHp());
+
+        TurnResult result = combat.useSkill(HealerBot.NETWORK_PATCH);
+
+        assertEquals("HealerBot utilise Patch réseau : + 10 PV.", result.log().get(0));
+        assertEquals(60, enemy.getHp());
+    }
+
+    @Test
     void fasterFighter_attacksFirst_thenSlowerRipostes() {
         InfighterBot player = new InfighterBot(1);
         TankBot enemy = new TankBot(1);
