@@ -61,11 +61,11 @@ public class ExplorationView extends StackPane {
         }
     };
 
-    public ExplorationView(TileMap map, Player player, String zonePrefix) {
+    public ExplorationView(TileMap map, Player player, String zonePrefix, DiscoveredArea discovered) {
         this.map = map;
         this.player = player;
         this.zonePrefix = zonePrefix;
-        this.discovered = new DiscoveredArea(map.getWidth(), map.getHeight());
+        this.discovered = discovered;
         this.minimap = new Minimap(map, discovered);
         this.canvas.getGraphicsContext2D().setImageSmoothing(false);
         getChildren().add(canvas);

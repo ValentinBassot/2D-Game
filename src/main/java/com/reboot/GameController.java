@@ -13,8 +13,10 @@ import com.reboot.model.Robot;
 import com.reboot.model.Tile;
 import com.reboot.model.TileMap;
 import com.reboot.view.CombatView;
+import com.reboot.view.DiscoveredArea;
 import com.reboot.view.ExplorationView;
 import com.reboot.view.ScaledScreen;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -34,6 +36,8 @@ public class GameController implements CombatLauncher {
     private final ScaledScreen screen;
     private final Robot partner = new InfighterBot(STARTER_LEVEL);
     private final EncounterTrigger encounters = new EncounterTrigger(new Random(), ENCOUNTER_ONE_IN);
+
+    private final Map<Integer, DiscoveredArea> discovered = new HashMap<>();
 
     private int currentZone = HOME;
     private TileMap map;
@@ -57,7 +61,9 @@ public class GameController implements CombatLauncher {
         if (zone == HOME) {
             partner.heal(partner.getMaxHp());
         }
-        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix());
+        DiscoveredArea seen = discovered.computeIfAbsent(zone,
+                key -> new DiscoveredArea(map.getWidth(), map.getHeight()));
+        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen);
         exploration.setOnStep(this::onStep);
         showExploration();
     }
