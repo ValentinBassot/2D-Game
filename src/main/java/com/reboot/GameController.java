@@ -13,10 +13,12 @@ import com.reboot.model.Robot;
 import com.reboot.model.Tile;
 import com.reboot.model.TileMap;
 import com.reboot.view.CombatView;
+import com.reboot.view.DiscoveredArea;
 import com.reboot.view.ExplorationView;
+import com.reboot.view.ScaledScreen;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import javafx.scene.Scene;
 
 public class GameController implements CombatLauncher {
 
@@ -31,16 +33,18 @@ public class GameController implements CombatLauncher {
             HOME, new ZoneSpec("/com/reboot/maps/home.txt", "home", 0),
             1, new ZoneSpec("/com/reboot/maps/zone1.txt", "z1", 2));
 
-    private final Scene scene;
+    private final ScaledScreen screen;
     private final Robot partner = new InfighterBot(STARTER_LEVEL);
     private final EncounterTrigger encounters = new EncounterTrigger(new Random(), ENCOUNTER_ONE_IN);
+
+    private final Map<Integer, DiscoveredArea> discovered = new HashMap<>();
 
     private int currentZone = HOME;
     private TileMap map;
     private ExplorationView exploration;
 
-    public GameController(Scene scene) {
-        this.scene = scene;
+    public GameController(ScaledScreen screen) {
+        this.screen = screen;
     }
 
     public void start() {
@@ -57,7 +61,9 @@ public class GameController implements CombatLauncher {
         if (zone == HOME) {
             partner.heal(partner.getMaxHp());
         }
-        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix());
+        DiscoveredArea seen = discovered.computeIfAbsent(zone,
+                key -> new DiscoveredArea(map.getWidth(), map.getHeight()));
+        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen);
         exploration.setOnStep(this::onStep);
         showExploration();
     }
@@ -76,7 +82,7 @@ public class GameController implements CombatLauncher {
     }
 
     private void showExploration() {
-        scene.setRoot(exploration);
+        screen.show(exploration);
         exploration.start();
     }
 
@@ -94,7 +100,7 @@ public class GameController implements CombatLauncher {
     public void launch(Combattant enemy) {
         exploration.stop();
         CombatView combat = new CombatView(new Encounter(partner, enemy), this::onCombatEnd);
-        scene.setRoot(combat);
+        screen.show(combat);
         combat.start();
     }
 

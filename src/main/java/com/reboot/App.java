@@ -1,11 +1,13 @@
 package com.reboot;
 
 import com.reboot.view.ExplorationView;
+import com.reboot.view.ScaledScreen;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -16,12 +18,18 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(new StackPane(), ExplorationView.VIEW_WIDTH, ExplorationView.VIEW_HEIGHT);
+        ScaledScreen screen = new ScaledScreen(ExplorationView.VIEW_WIDTH, ExplorationView.VIEW_HEIGHT);
+        scene = new Scene(screen);
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
+        });
         stage.setTitle("Reboot");
         stage.setScene(scene);
-        stage.setResizable(false);
+        stage.setFullScreenExitHint("");
         stage.show();
-        new GameController(scene).start();
+        new GameController(screen).start();
     }
 
     static void setRoot(String fxml) throws IOException {
