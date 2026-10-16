@@ -16,7 +16,7 @@ class DamageCalculatorTest {
         }
     }
 
-    private static int hit(Combattant attacker, Skill skill, Combattant defender) {
+    private static int hit(Combattant attacker, DamageSkill skill, Combattant defender) {
         return DamageCalculator.compute(attacker, defender, skill.getPower(), skill.ignoresDefense());
     }
 

@@ -2,7 +2,6 @@ package com.reboot.model.combat;
 
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Robot;
-import com.reboot.model.skill.DamageCalculator;
 import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +34,9 @@ public class Combat {
         Skill firstSkill = playerFirst ? skill : enemySkill;
         Skill secondSkill = playerFirst ? enemySkill : skill;
 
-        attack(first, firstSkill, second, log);
+        act(first, firstSkill, second, log);
         if (!second.isKo()) {
-            attack(second, secondSkill, first, log);
+            act(second, secondSkill, first, log);
         }
         return new TurnResult(log, isOver());
     }
@@ -46,10 +45,8 @@ public class Combat {
         return enemy.getSkills().isEmpty() ? Robot.STRIKE : enemy.getSkills().get(0);
     }
 
-    private void attack(Combattant attacker, Skill skill, Combattant defender, List<String> log) {
-        int damage = DamageCalculator.compute(attacker, defender, skill.getPower(), skill.ignoresDefense());
-        defender.takeDamage(damage);
-        log.add(attacker.getName() + " utilise " + skill.getName() + " : " + damage + " dégâts.");
+    private void act(Combattant attacker, Skill skill, Combattant defender, List<String> log) {
+        log.add(skill.apply(attacker, defender));
         if (defender.isKo()) {
             log.add(defender.getName() + " est K.O. !");
         }
