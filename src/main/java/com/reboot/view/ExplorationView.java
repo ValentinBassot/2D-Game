@@ -1,9 +1,9 @@
 package com.reboot.view;
 
-import com.reboot.model.Direction;
-import com.reboot.model.Player;
-import com.reboot.model.Tile;
-import com.reboot.model.TileMap;
+import com.reboot.model.world.Direction;
+import com.reboot.model.world.Player;
+import com.reboot.model.world.Tile;
+import com.reboot.model.world.TileMap;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Locale;
