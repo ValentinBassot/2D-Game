@@ -59,6 +59,24 @@ class CombattantTest {
     }
 
     @Test
+    void defenseBoost_multipliesDef_untilItsTurnsAreOver() {
+        Combattant c = new TestFighter(1);
+        c.boostDefense(2, 2);
+        assertEquals(24, c.getDef());
+        c.endTurn();
+        assertEquals(24, c.getDef());
+        c.endTurn();
+        assertEquals(12, c.getDef());
+    }
+
+    @Test
+    void invalidDefenseBoost_isRejected() {
+        Combattant c = new TestFighter(1);
+        assertThrows(IllegalArgumentException.class, () -> c.boostDefense(0, 2));
+        assertThrows(IllegalArgumentException.class, () -> c.boostDefense(2, 0));
+    }
+
+    @Test
     void negativeDamage_isRejected() {
         Combattant c = new TestFighter(1);
         assertThrows(IllegalArgumentException.class, () -> c.takeDamage(-5));

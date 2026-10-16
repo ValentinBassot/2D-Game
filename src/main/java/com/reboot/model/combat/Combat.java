@@ -38,6 +38,8 @@ public class Combat {
         if (!second.isKo()) {
             act(second, secondSkill, first, log);
         }
+        player.endTurn();
+        enemy.endTurn();
         return new TurnResult(log, isOver());
     }
 

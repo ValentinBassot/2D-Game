@@ -36,6 +36,22 @@ class CombatTest {
     }
 
     @Test
+    void armor_reducesDamageForTwoTurns_thenExpires() {
+        TankBot player = new TankBot(1);
+        InfighterBot enemy = new InfighterBot(1);
+        Combat combat = new Combat(player, enemy);
+
+        combat.useSkill(TankBot.ARMOR);
+        assertEquals(48, player.getHp());
+
+        combat.useSkill(TankBot.CRUSH);
+        assertEquals(47, player.getHp());
+
+        combat.useSkill(TankBot.CRUSH);
+        assertEquals(35, player.getHp());
+    }
+
+    @Test
     void fasterFighter_attacksFirst_thenSlowerRipostes() {
         InfighterBot player = new InfighterBot(1);
         TankBot enemy = new TankBot(1);
