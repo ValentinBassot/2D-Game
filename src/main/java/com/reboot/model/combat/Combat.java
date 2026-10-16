@@ -2,6 +2,7 @@ package com.reboot.model.combat;
 
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Robot;
+import com.reboot.model.skill.DamageCalculator;
 import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.List;
