@@ -6,6 +6,10 @@ public interface RobotState {
 
     boolean isReprogrammable();
 
+    default boolean isUnderRepair() {
+        return false;
+    }
+
     RobotState onReprogram();
 
     RobotState onKnockOut();

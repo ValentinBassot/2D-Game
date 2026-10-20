@@ -29,6 +29,11 @@ public class RepairingState implements RobotState {
     }
 
     @Override
+    public boolean isUnderRepair() {
+        return true;
+    }
+
+    @Override
     public RobotState onReprogram() {
         throw new IllegalStateException("A robot under repair cannot be reprogrammed");
     }

@@ -46,6 +46,10 @@ public abstract class Robot extends Combattant {
         return state.isReprogrammable();
     }
 
+    public boolean isUnderRepair() {
+        return state.isUnderRepair();
+    }
+
     public void reprogram() {
         state = state.onReprogram();
     }
@@ -55,10 +59,18 @@ public abstract class Robot extends Combattant {
     }
 
     public void recordTeamVictory() {
-        state = state.onTeamVictory();
+        changeState(state.onTeamVictory());
     }
 
     public void useRepairPart() {
-        state = state.onPartUsed();
+        changeState(state.onPartUsed());
+    }
+
+    private void changeState(RobotState next) {
+        boolean repairFinished = state.isUnderRepair() && !next.isUnderRepair();
+        state = next;
+        if (repairFinished) {
+            heal(getMaxHp());
+        }
     }
 }
