@@ -1,12 +1,12 @@
 package com.reboot.view;
 
-import com.reboot.model.Combat;
-import com.reboot.model.CombatOutcome;
-import com.reboot.model.Combattant;
-import com.reboot.model.Encounter;
-import com.reboot.model.EncounterResult;
-import com.reboot.model.Robot;
-import com.reboot.model.Skill;
+import com.reboot.model.combat.Combat;
+import com.reboot.model.combat.CombatOutcome;
+import com.reboot.model.combat.Encounter;
+import com.reboot.model.combat.EncounterResult;
+import com.reboot.model.fighter.Combattant;
+import com.reboot.model.fighter.Robot;
+import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;

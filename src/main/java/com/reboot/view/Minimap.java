@@ -1,7 +1,7 @@
 package com.reboot.view;
 
-import com.reboot.model.Tile;
-import com.reboot.model.TileMap;
+import com.reboot.model.world.Tile;
+import com.reboot.model.world.TileMap;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
