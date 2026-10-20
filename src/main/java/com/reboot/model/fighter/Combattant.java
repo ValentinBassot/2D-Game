@@ -58,6 +58,10 @@ public abstract class Combattant {
 
     public abstract boolean isReprogrammable();
 
+    public boolean endsTheGame() {
+        return false;
+    }
+
     public double advantageAgainst(Combattant defender) {
         return 1.0;
     }
