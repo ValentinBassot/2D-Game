@@ -1,11 +1,14 @@
 package com.reboot.model.fighter;
 
+import com.reboot.model.skill.DamageSkill;
 import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public abstract class Combattant {
+
+    public static final DamageSkill STRIKE = new DamageSkill("Frappe", 10);
 
     private final String name;
     private final int level;

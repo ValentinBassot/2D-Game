@@ -1,7 +1,6 @@
 package com.reboot.model.combat;
 
 import com.reboot.model.fighter.Combattant;
-import com.reboot.model.fighter.Robot;
 import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +50,7 @@ public class Combat {
     }
 
     private Skill chooseEnemySkill() {
-        return enemy.getSkills().isEmpty() ? Robot.STRIKE : enemy.getSkills().get(0);
+        return enemy.getSkills().isEmpty() ? Combattant.STRIKE : enemy.getSkills().get(0);
     }
 
     private void act(Combattant attacker, Skill skill, Combattant defender, List<String> log) {

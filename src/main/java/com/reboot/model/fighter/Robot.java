@@ -1,10 +1,6 @@
 package com.reboot.model.fighter;
 
-import com.reboot.model.skill.DamageSkill;
-
 public abstract class Robot extends Combattant {
-
-    public static final DamageSkill STRIKE = new DamageSkill("Frappe", 10);
 
     private final RobotType type;
     private RobotState state = new HijackedState();
