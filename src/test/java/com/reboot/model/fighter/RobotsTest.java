@@ -52,6 +52,15 @@ class RobotsTest {
     }
 
     @Test
+    void advantageAgainst_followsTheTypeTriangle() {
+        assertEquals(1.5, new InfighterBot(1).advantageAgainst(new HealerBot(1)));
+        assertEquals(1.5, new HealerBot(1).advantageAgainst(new TankBot(1)));
+        assertEquals(1.5, new TankBot(1).advantageAgainst(new InfighterBot(1)));
+        assertEquals(1.0, new HealerBot(1).advantageAgainst(new InfighterBot(1)));
+        assertEquals(1.0, new TankBot(1).advantageAgainst(new TankBot(1)));
+    }
+
+    @Test
     void aBot_inheritsCombattantMethods() {
         TankBot tank = new TankBot(5);
         assertEquals(84, tank.getMaxHp());

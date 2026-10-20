@@ -55,6 +55,14 @@ public abstract class Combattant {
 
     public abstract boolean isReprogrammable();
 
+    public double advantageAgainst(Combattant defender) {
+        return 1.0;
+    }
+
+    protected double weaknessTo(RobotType attackerType) {
+        return 1.0;
+    }
+
     public void boostDefense(int multiplier, int turns) {
         if (multiplier < 1 || turns < 1) {
             throw new IllegalArgumentException("Invalid defense boost");

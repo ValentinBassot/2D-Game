@@ -56,6 +56,11 @@ class DamageCalculatorTest {
     }
 
     @Test
+    void nonRobotAttacker_getsNoTypeBonus() {
+        assertEquals(12, hit(new NonRobotFighter(), Robot.STRIKE, new InfighterBot(1)));
+    }
+
+    @Test
     void calculator_doesNotRemoveHp() {
         HealerBot healer = new HealerBot(1);
         hit(new InfighterBot(1), InfighterBot.FLURRY, healer);
