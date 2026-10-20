@@ -26,6 +26,12 @@ class BossTest {
     }
 
     @Test
+    void theBoss_overridesTheExosqueletteSprite() {
+        assertEquals("exosquelette", new Exosquelette(1).getSpriteId());
+        assertEquals("chef_nexus", new Boss().getSpriteId());
+    }
+
+    @Test
     void onlyTheBoss_endsTheGame() {
         assertTrue(new Boss().endsTheGame());
         assertFalse(new Exosquelette(4).endsTheGame());

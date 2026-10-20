@@ -1,5 +1,7 @@
 package com.reboot.model.fighter;
 
+import java.util.Locale;
+
 public abstract class Robot extends Combattant {
 
     private final RobotType type;
@@ -14,6 +16,11 @@ public abstract class Robot extends Combattant {
 
     public RobotType getType() {
         return type;
+    }
+
+    @Override
+    public String getSpriteId() {
+        return type.name().toLowerCase(Locale.ROOT) + "bot";
     }
 
     @Override

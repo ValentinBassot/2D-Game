@@ -25,6 +25,11 @@ class EncounterTest {
         public boolean isReprogrammable() {
             return false;
         }
+
+        @Override
+        public String getSpriteId() {
+            return "dummy";
+        }
     }
 
     private static void playUntilTheEnd(Encounter encounter) {

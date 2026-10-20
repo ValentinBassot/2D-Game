@@ -14,6 +14,11 @@ public class Boss extends Exosquelette {
     }
 
     @Override
+    public String getSpriteId() {
+        return "chef_nexus";
+    }
+
+    @Override
     public boolean endsTheGame() {
         return true;
     }

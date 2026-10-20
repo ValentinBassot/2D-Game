@@ -58,6 +58,8 @@ public abstract class Combattant {
 
     public abstract boolean isReprogrammable();
 
+    public abstract String getSpriteId();
+
     public boolean endsTheGame() {
         return false;
     }

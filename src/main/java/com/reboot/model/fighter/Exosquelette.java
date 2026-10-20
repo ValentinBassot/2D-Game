@@ -25,4 +25,9 @@ public class Exosquelette extends Combattant {
     public boolean isReprogrammable() {
         return false;
     }
+
+    @Override
+    public String getSpriteId() {
+        return "exosquelette";
+    }
 }

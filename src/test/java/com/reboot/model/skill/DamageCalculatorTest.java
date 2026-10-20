@@ -19,6 +19,11 @@ class DamageCalculatorTest {
         public boolean isReprogrammable() {
             return false;
         }
+
+        @Override
+        public String getSpriteId() {
+            return "dummy";
+        }
     }
 
     private static int hit(Combattant attacker, DamageSkill skill, Combattant defender) {
