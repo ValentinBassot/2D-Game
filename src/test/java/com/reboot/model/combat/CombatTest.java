@@ -18,12 +18,22 @@ class CombatTest {
             super(name, 1, hp, atk, def, speed);
             addSkill(Robot.STRIKE);
         }
+
+        @Override
+        public boolean isReprogrammable() {
+            return false;
+        }
     }
 
     private static class SlowHooker extends Combattant {
         SlowHooker() {
             super("Lent", 1, 100, 10, 0, 1);
             addSkill(InfighterBot.HOOK);
+        }
+
+        @Override
+        public boolean isReprogrammable() {
+            return false;
         }
     }
 

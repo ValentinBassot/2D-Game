@@ -53,6 +53,8 @@ public abstract class Combattant {
         return this.hp == 0;
     }
 
+    public abstract boolean isReprogrammable();
+
     public void boostDefense(int multiplier, int turns) {
         if (multiplier < 1 || turns < 1) {
             throw new IllegalArgumentException("Invalid defense boost");

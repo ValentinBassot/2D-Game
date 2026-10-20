@@ -19,6 +19,11 @@ class EncounterTest {
             super("Dummy", 1, 10, 1, 1, 1);
             addSkill(Robot.STRIKE);
         }
+
+        @Override
+        public boolean isReprogrammable() {
+            return false;
+        }
     }
 
     private static void playUntilTheEnd(Encounter encounter) {

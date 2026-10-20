@@ -14,6 +14,11 @@ class DamageCalculatorTest {
         NonRobotFighter() {
             super("Exo", 1, 60, 8, 12, 4);
         }
+
+        @Override
+        public boolean isReprogrammable() {
+            return false;
+        }
     }
 
     private static int hit(Combattant attacker, DamageSkill skill, Combattant defender) {

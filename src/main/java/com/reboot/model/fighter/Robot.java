@@ -28,6 +28,7 @@ public abstract class Robot extends Combattant {
         return state.canFightForPlayer();
     }
 
+    @Override
     public boolean isReprogrammable() {
         return state.isReprogrammable();
     }
