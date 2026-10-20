@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.reboot.model.fighter.Combattant;
+import com.reboot.model.fighter.Exosquelette;
 import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.InfighterBot;
 import com.reboot.model.fighter.Robot;
@@ -23,6 +24,11 @@ class EncounterTest {
         @Override
         public boolean isReprogrammable() {
             return false;
+        }
+
+        @Override
+        public String getSpriteId() {
+            return "dummy";
         }
     }
 
@@ -50,6 +56,13 @@ class EncounterTest {
         EncounterResult result = encounter.getResult();
         assertEquals(CombatOutcome.VICTORY, result.outcome());
         assertFalse(result.choiceAvailable());
+    }
+
+    @Test
+    void victoryAgainstAnExosquelette_offersNoChoice() {
+        Encounter encounter = new Encounter(new InfighterBot(10), new Exosquelette(1));
+        playUntilTheEnd(encounter);
+        assertFalse(encounter.getResult().choiceAvailable());
     }
 
     @Test

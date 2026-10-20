@@ -17,6 +17,11 @@ class CombattantTest {
         public boolean isReprogrammable() {
             return false;
         }
+
+        @Override
+        public String getSpriteId() {
+            return "dummy";
+        }
     }
 
     @Test

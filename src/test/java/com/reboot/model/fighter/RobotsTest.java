@@ -61,6 +61,13 @@ class RobotsTest {
     }
 
     @Test
+    void spriteId_matchesTheAssetFolder() {
+        assertEquals("tankbot", new TankBot(1).getSpriteId());
+        assertEquals("healerbot", new HealerBot(1).getSpriteId());
+        assertEquals("infighterbot", new InfighterBot(1).getSpriteId());
+    }
+
+    @Test
     void aBot_inheritsCombattantMethods() {
         TankBot tank = new TankBot(5);
         assertEquals(84, tank.getMaxHp());

@@ -23,6 +23,11 @@ class CombatTest {
         public boolean isReprogrammable() {
             return false;
         }
+
+        @Override
+        public String getSpriteId() {
+            return "dummy";
+        }
     }
 
     private static class SlowHooker extends Combattant {
@@ -34,6 +39,11 @@ class CombatTest {
         @Override
         public boolean isReprogrammable() {
             return false;
+        }
+
+        @Override
+        public String getSpriteId() {
+            return "dummy";
         }
     }
 

@@ -1,10 +1,8 @@
 package com.reboot.model.fighter;
 
-import com.reboot.model.skill.DamageSkill;
+import java.util.Locale;
 
 public abstract class Robot extends Combattant {
-
-    public static final DamageSkill STRIKE = new DamageSkill("Frappe", 10);
 
     private final RobotType type;
     private RobotState state = new HijackedState();
@@ -18,6 +16,11 @@ public abstract class Robot extends Combattant {
 
     public RobotType getType() {
         return type;
+    }
+
+    @Override
+    public String getSpriteId() {
+        return type.name().toLowerCase(Locale.ROOT) + "bot";
     }
 
     @Override

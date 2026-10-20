@@ -5,11 +5,9 @@ import com.reboot.model.combat.CombatOutcome;
 import com.reboot.model.combat.Encounter;
 import com.reboot.model.combat.EncounterResult;
 import com.reboot.model.fighter.Combattant;
-import com.reboot.model.fighter.Robot;
 import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Consumer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -115,7 +113,7 @@ public class CombatView extends StackPane {
 
         Combattant enemy = combat.getEnemy();
         Combattant ally = combat.getPlayer();
-        sprites.draw(gc, sprite(enemy, enemy.isKo() ? "ko" : "front_hostile_idle"), 624, 100, 192, Color.CRIMSON);
+        sprites.draw(gc, sprite(enemy, enemy.isKo() ? "ko" : enemy.isReprogrammable() ? "front_hostile_idle" : "front_idle"), 624, 100, 192, Color.CRIMSON);
         sprites.draw(gc, sprite(ally, ally.isKo() ? "ko" : "back_idle"), 122, 230, 256, Color.DODGERBLUE);
         drawStatus(gc, enemy, 60, 60);
         drawStatus(gc, ally, 600, 380);
@@ -155,9 +153,6 @@ public class CombatView extends StackPane {
     }
 
     private static String sprite(Combattant fighter, String pose) {
-        if (fighter instanceof Robot robot) {
-            return "robots/" + robot.getType().name().toLowerCase(Locale.ROOT) + "bot/battle/" + pose + ".png";
-        }
-        return "robots/exosquelette/battle/" + pose + ".png";
+        return "robots/" + fighter.getSpriteId() + "/battle/" + pose + ".png";
     }
 }
