@@ -20,6 +20,16 @@ public abstract class Robot extends Combattant {
         return type;
     }
 
+    @Override
+    public double advantageAgainst(Combattant defender) {
+        return defender.weaknessTo(type);
+    }
+
+    @Override
+    protected double weaknessTo(RobotType attackerType) {
+        return attackerType.multiplierAgainst(type);
+    }
+
     public RobotState getState() {
         return state;
     }
@@ -28,6 +38,7 @@ public abstract class Robot extends Combattant {
         return state.canFightForPlayer();
     }
 
+    @Override
     public boolean isReprogrammable() {
         return state.isReprogrammable();
     }

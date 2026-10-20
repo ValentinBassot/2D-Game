@@ -12,6 +12,11 @@ class CombattantTest {
         TestFighter(int level) {
             super("Test", level, 60, 8, 12, 4);
         }
+
+        @Override
+        public boolean isReprogrammable() {
+            return false;
+        }
     }
 
     @Test

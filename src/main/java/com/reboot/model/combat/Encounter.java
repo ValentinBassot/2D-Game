@@ -1,7 +1,6 @@
 package com.reboot.model.combat;
 
 import com.reboot.model.fighter.Combattant;
-import com.reboot.model.fighter.Robot;
 
 public class Encounter {
     private final Combat combat;
@@ -23,7 +22,7 @@ public class Encounter {
             throw new IllegalStateException("The encounter is not finished yet");
         }
         CombatOutcome outcome = combat.getOutcome();
-        boolean choiceAvailable = outcome == CombatOutcome.VICTORY && combat.getEnemy() instanceof Robot;
+        boolean choiceAvailable = outcome == CombatOutcome.VICTORY && combat.getEnemy().isReprogrammable();
         return new EncounterResult(outcome, combat.getEnemy(), choiceAvailable);
     }
 }
