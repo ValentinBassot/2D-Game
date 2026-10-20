@@ -5,7 +5,8 @@ public enum Tile {
     WALL(false),
     ENCOUNTER(true),
     STATION(false),
-    PORTAL(true);
+    PORTAL(true),
+    BOSS(true);
 
     private final boolean walkable;
 
@@ -22,6 +23,7 @@ public enum Tile {
             case '~' -> ENCOUNTER;
             case 'S' -> STATION;
             case '0', '1', '2', '3' -> PORTAL;
+            case 'B' -> BOSS;
             default -> throw new IllegalArgumentException("Unknown map symbol: " + symbol);
         };
     }

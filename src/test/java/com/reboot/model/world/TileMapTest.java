@@ -96,6 +96,28 @@ class TileMapTest {
     }
 
     @Test
+    void parse_reconnait_la_tuile_du_boss_et_elle_est_franchissable() {
+        TileMap map = TileMap.parse(List.of("#@B#"));
+        assertEquals(Tile.BOSS, map.tileAt(2, 0));
+        assertTrue(map.isWalkable(2, 0));
+    }
+
+    @Test
+    void load_lit_le_data_center_avec_son_portail_de_retour_et_un_seul_boss() {
+        TileMap zone = TileMap.load("/com/reboot/maps/zone3.txt");
+        assertEquals(0, zone.portalZoneAt(zone.getSpawnX(), zone.getSpawnY() - 1));
+        int bosses = 0;
+        for (int y = 0; y < zone.getHeight(); y++) {
+            for (int x = 0; x < zone.getWidth(); x++) {
+                if (zone.tileAt(x, y) == Tile.BOSS) {
+                    bosses++;
+                }
+            }
+        }
+        assertEquals(1, bosses);
+    }
+
+    @Test
     void load_refuse_un_fichier_absent() {
         assertThrows(IllegalArgumentException.class, () -> TileMap.load("/com/reboot/maps/absent.txt"));
     }
