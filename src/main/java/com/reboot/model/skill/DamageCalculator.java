@@ -1,4 +1,4 @@
-package com.reboot.model.combat;
+package com.reboot.model.skill;
 
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Robot;

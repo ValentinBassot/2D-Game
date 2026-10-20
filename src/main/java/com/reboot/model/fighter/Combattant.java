@@ -15,6 +15,8 @@ public abstract class Combattant {
     private final int def;
     private final int speed;
     private final List<Skill> skills = new ArrayList<>();
+    private int defenseMultiplier = 1;
+    private int boostTurnsLeft;
 
     protected Combattant(String name, int level, int baseHp, int baseAtk, int baseDef, int baseSpeed) {
         if (level < 1) {
@@ -51,6 +53,23 @@ public abstract class Combattant {
         return this.hp == 0;
     }
 
+    public void boostDefense(int multiplier, int turns) {
+        if (multiplier < 1 || turns < 1) {
+            throw new IllegalArgumentException("Invalid defense boost");
+        }
+        this.defenseMultiplier = multiplier;
+        this.boostTurnsLeft = turns;
+    }
+
+    public void endTurn() {
+        if (boostTurnsLeft > 0) {
+            boostTurnsLeft--;
+            if (boostTurnsLeft == 0) {
+                defenseMultiplier = 1;
+            }
+        }
+    }
+
     protected final void addSkill(Skill skill) {
         this.skills.add(skill);
     }
@@ -64,6 +83,6 @@ public abstract class Combattant {
     public int getHp() { return hp; }
     public int getMaxHp() { return maxHp; }
     public int getAtk() { return atk; }
-    public int getDef() { return def; }
+    public int getDef() { return def * defenseMultiplier; }
     public int getSpeed() { return speed; }
 }

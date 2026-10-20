@@ -1,11 +1,12 @@
 package com.reboot.model.fighter;
 
-import com.reboot.model.skill.Skill;
+import com.reboot.model.skill.DamageSkill;
+import com.reboot.model.skill.HealSkill;
 
 public class HealerBot extends Robot {
 
-    public static final Skill NETWORK_PATCH = new Skill("Patch réseau", 0, false);
-    public static final Skill CORROSIVE_NANOBOTS = new Skill("Nanobots corrosifs", 12, true);
+    public static final HealSkill NETWORK_PATCH = new HealSkill("Patch réseau", 15);
+    public static final DamageSkill CORROSIVE_NANOBOTS = new DamageSkill("Nanobots corrosifs", 12, true, false);
 
     private static final int BASE_HP = 45;
     private static final int BASE_ATK = 7;

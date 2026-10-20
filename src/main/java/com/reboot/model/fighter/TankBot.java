@@ -1,11 +1,12 @@
 package com.reboot.model.fighter;
 
-import com.reboot.model.skill.Skill;
+import com.reboot.model.skill.DamageSkill;
+import com.reboot.model.skill.DefenseBoostSkill;
 
 public class TankBot extends Robot {
 
-    public static final Skill ARMOR = new Skill("Blindage", 0, false);
-    public static final Skill CRUSH = new Skill("Écrasement", 16, false);
+    public static final DefenseBoostSkill ARMOR = new DefenseBoostSkill("Blindage", 2, 2);
+    public static final DamageSkill CRUSH = new DamageSkill("Écrasement", 16);
 
     private static final int BASE_HP = 60;
     private static final int BASE_ATK = 8;

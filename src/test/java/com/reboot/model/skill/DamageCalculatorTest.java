@@ -1,4 +1,4 @@
-package com.reboot.model.combat;
+package com.reboot.model.skill;
 
 import static org.junit.jupiter.api.Assertions.*;
 import com.reboot.model.fighter.Combattant;
@@ -6,7 +6,6 @@ import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.InfighterBot;
 import com.reboot.model.fighter.Robot;
 import com.reboot.model.fighter.TankBot;
-import com.reboot.model.skill.Skill;
 import org.junit.jupiter.api.Test;
 
 class DamageCalculatorTest {
@@ -17,7 +16,7 @@ class DamageCalculatorTest {
         }
     }
 
-    private static int hit(Combattant attacker, Skill skill, Combattant defender) {
+    private static int hit(Combattant attacker, DamageSkill skill, Combattant defender) {
         return DamageCalculator.compute(attacker, defender, skill.getPower(), skill.ignoresDefense());
     }
 
