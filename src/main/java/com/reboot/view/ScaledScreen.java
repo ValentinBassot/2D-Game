@@ -2,6 +2,7 @@ package com.reboot.view;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
@@ -13,6 +14,10 @@ public class ScaledScreen extends StackPane {
         this.scale = Bindings.min(widthProperty().divide(baseWidth), heightProperty().divide(baseHeight));
         setStyle("-fx-background-color: black;");
         setPrefSize(baseWidth, baseHeight);
+    }
+
+    public void setBrightness(int level) {
+        setEffect(level == 0 ? null : new ColorAdjust(0, 0, level / 10.0, 0));
     }
 
     public void show(Region view) {
