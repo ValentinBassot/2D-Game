@@ -11,6 +11,7 @@ import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.InfighterBot;
 import com.reboot.model.fighter.Robot;
 import com.reboot.model.fighter.TankBot;
+import com.reboot.model.team.Team;
 import org.junit.jupiter.api.Test;
 
 class EncounterTest {
@@ -63,6 +64,14 @@ class EncounterTest {
         Encounter encounter = new Encounter(new InfighterBot(10), new Exosquelette(1));
         playUntilTheEnd(encounter);
         assertFalse(encounter.getResult().choiceAvailable());
+    }
+
+    @Test
+    void aTeamEncounter_startsWithTheActiveRobot() {
+        InfighterBot starter = new InfighterBot(2);
+        starter.reprogram();
+        Encounter encounter = new Encounter(new Team(starter), new HealerBot(1));
+        assertSame(starter, encounter.getCombat().getPlayer());
     }
 
     @Test

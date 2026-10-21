@@ -2,6 +2,7 @@ package com.reboot.model.combat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.reboot.model.fighter.Combattant;
@@ -9,6 +10,8 @@ import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.InfighterBot;
 import com.reboot.model.fighter.Robot;
 import com.reboot.model.fighter.TankBot;
+import com.reboot.model.team.Team;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class CombatTest {
@@ -178,5 +181,84 @@ class CombatTest {
     void unknownSkill_isRejected() {
         Combat combat = new Combat(new InfighterBot(1), new TankBot(1));
         assertThrows(IllegalArgumentException.class, () -> combat.useSkill(TankBot.CRUSH));
+    }
+
+    private static <T extends Robot> T ally(T robot) {
+        robot.reprogram();
+        return robot;
+    }
+
+    @Test
+    void switching_costsTheTurn_andTheEnemyHitsTheNewcomer() {
+        InfighterBot starter = ally(new InfighterBot(1));
+        TankBot tank = ally(new TankBot(1));
+        Team team = new Team(starter);
+        team.add(tank);
+        Combat combat = new Combat(team, new HealerBot(1));
+
+        TurnResult result = combat.switchTo(tank);
+
+        assertSame(tank, combat.getPlayer());
+        assertEquals("InfighterBot revient. TankBot entre en combat !", result.log().get(0));
+        assertEquals(53, tank.getHp());
+        assertEquals(45, starter.getHp());
+        assertEquals(1, combat.getTurn());
+    }
+
+    @Test
+    void aKnockedOutRobot_isReplacedForFree_andTheCombatGoesOn() {
+        InfighterBot starter = ally(new InfighterBot(1));
+        TankBot tank = ally(new TankBot(1));
+        starter.takeDamage(44);
+        Team team = new Team(starter);
+        team.add(tank);
+        InfighterBot enemy = new InfighterBot(5);
+        Combat combat = new Combat(team, enemy);
+
+        TurnResult knockOut = combat.useSkill(InfighterBot.FLURRY);
+
+        assertFalse(knockOut.combatOver());
+        assertTrue(combat.mustSwitch());
+        assertThrows(IllegalStateException.class, () -> combat.useSkill(InfighterBot.FLURRY));
+
+        TurnResult entry = combat.switchTo(tank);
+
+        assertEquals(List.of("TankBot entre en combat !"), entry.log());
+        assertEquals(60, tank.getHp());
+        assertEquals(enemy.getMaxHp(), enemy.getHp());
+        assertEquals(1, combat.getTurn());
+        assertFalse(combat.mustSwitch());
+    }
+
+    @Test
+    void whenNoRobotIsLeft_theCombatIsLost() {
+        InfighterBot starter = ally(new InfighterBot(1));
+        starter.takeDamage(44);
+        Combat combat = new Combat(new Team(starter), new InfighterBot(5));
+
+        assertTrue(combat.useSkill(InfighterBot.FLURRY).combatOver());
+        assertEquals(CombatOutcome.DEFEAT, combat.getOutcome());
+    }
+
+    @Test
+    void switchOptions_skipTheActiveRobot_andTheRobotsUnderRepair() {
+        InfighterBot starter = ally(new InfighterBot(1));
+        TankBot broken = ally(new TankBot(1));
+        broken.takeDamage(999);
+        broken.handleKnockOut();
+        HealerBot healer = ally(new HealerBot(1));
+        Team team = new Team(starter);
+        team.add(broken);
+        team.add(healer);
+        Combat combat = new Combat(team, new TankBot(1));
+
+        assertEquals(List.of(healer), combat.getSwitchOptions());
+        assertThrows(IllegalArgumentException.class, () -> combat.switchTo(broken));
+        assertThrows(IllegalArgumentException.class, () -> combat.switchTo(starter));
+    }
+
+    @Test
+    void aSoloCombat_offersNoSwitch() {
+        assertTrue(new Combat(new InfighterBot(1), new TankBot(1)).getSwitchOptions().isEmpty());
     }
 }
