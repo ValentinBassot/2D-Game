@@ -42,6 +42,7 @@ public class Game {
         }
         if (result.outcome() == CombatOutcome.VICTORY) {
             team.recordVictory();
+            team.sendKnockedOutToRepair();
             if (result.enemy().endsTheGame()) {
                 status = GameStatus.WON;
             } else if (!result.enemy().isReprogrammable()) {
