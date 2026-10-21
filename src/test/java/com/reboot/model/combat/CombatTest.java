@@ -135,7 +135,8 @@ class CombatTest {
 
         assertTrue(enemy.isKo());
         assertEquals(34, player.getHp());
-        assertEquals(2, result.log().size());
+        assertEquals(List.of("InfighterBot utilise Rafale de coups : 33 dégâts.", "HealerBot est K.O. !",
+                "InfighterBot gagne 10 XP."), result.log());
         assertTrue(result.combatOver());
         assertEquals(CombatOutcome.VICTORY, combat.getOutcome());
     }
@@ -260,5 +261,41 @@ class CombatTest {
     @Test
     void aSoloCombat_offersNoSwitch() {
         assertTrue(new Combat(new InfighterBot(1), new TankBot(1)).getSwitchOptions().isEmpty());
+    }
+
+    @Test
+    void theRobotThatWins_getsTheXp_andCanLevelUp() {
+        InfighterBot player = new InfighterBot(1);
+        Combat combat = new Combat(player, new HealerBot(5));
+
+        while (!combat.isOver()) {
+            combat.useSkill(InfighterBot.FLURRY);
+        }
+
+        assertEquals(CombatOutcome.VICTORY, combat.getOutcome());
+        assertEquals(2, player.getLevel());
+        assertEquals(0, player.getXp());
+    }
+
+    @Test
+    void levelingUp_isWrittenInTheLog() {
+        InfighterBot player = new InfighterBot(1);
+        player.gainXp(45);
+        HealerBot enemy = new HealerBot(1);
+        enemy.takeDamage(44);
+
+        TurnResult result = new Combat(player, enemy).useSkill(InfighterBot.FLURRY);
+
+        assertTrue(result.log().contains("InfighterBot passe au niveau 2 !"));
+    }
+
+    @Test
+    void losing_givesNoXpToTheEnemy() {
+        InfighterBot enemy = new InfighterBot(5);
+        Combat combat = new Combat(new HealerBot(1), enemy);
+        while (!combat.isOver()) {
+            combat.useSkill(Robot.STRIKE);
+        }
+        assertEquals(0, enemy.getXp());
     }
 }
