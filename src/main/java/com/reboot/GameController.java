@@ -19,6 +19,7 @@ import com.reboot.view.CombatView;
 import com.reboot.view.DiscoveredArea;
 import com.reboot.view.EndView;
 import com.reboot.view.ExplorationView;
+import com.reboot.view.Hud;
 import com.reboot.view.ScaledScreen;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,13 +30,13 @@ public class GameController implements CombatLauncher {
     private static final int HOME = 0;
     private static final int ENCOUNTER_ONE_IN = 6;
 
-    private record ZoneSpec(String mapPath, String spritePrefix, int level) {
+    private record ZoneSpec(String name, String mapPath, String spritePrefix, int level) {
     }
 
     private static final Map<Integer, ZoneSpec> ZONES = Map.of(
-            HOME, new ZoneSpec("/com/reboot/maps/home.txt", "home", 0),
-            1, new ZoneSpec("/com/reboot/maps/zone1.txt", "z1", 2),
-            3, new ZoneSpec("/com/reboot/maps/zone3.txt", "z3", 8));
+            HOME, new ZoneSpec("Home de Léon", "/com/reboot/maps/home.txt", "home", 0),
+            1, new ZoneSpec("Quartier résidentiel", "/com/reboot/maps/zone1.txt", "z1", 2),
+            3, new ZoneSpec("Data center", "/com/reboot/maps/zone3.txt", "z3", 8));
 
     private final ScaledScreen screen;
     private final Random random = new Random();
@@ -73,6 +74,7 @@ public class GameController implements CombatLauncher {
         exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen);
         exploration.setOnStep(this::onStep);
         exploration.setPortalOpen(ZONES::containsKey);
+        exploration.setHud(new Hud(game), spec.name());
         showExploration();
     }
 
