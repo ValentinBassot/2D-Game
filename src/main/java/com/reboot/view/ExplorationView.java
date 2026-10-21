@@ -49,6 +49,8 @@ public class ExplorationView extends StackPane {
     private boolean running;
     private StepListener stepListener;
     private IntPredicate portalOpen = zone -> true;
+    private Hud hud;
+    private String zoneName = "";
 
     private final AnimationTimer loop = new AnimationTimer() {
         @Override
@@ -92,6 +94,11 @@ public class ExplorationView extends StackPane {
 
     public void setPortalOpen(IntPredicate portalOpen) {
         this.portalOpen = portalOpen;
+    }
+
+    public void setHud(Hud hud, String zoneName) {
+        this.hud = hud;
+        this.zoneName = zoneName;
     }
 
     public void start() {
@@ -183,6 +190,9 @@ public class ExplorationView extends StackPane {
         sprites.draw(gc, playerSprite(), Math.round(playerX * CELL) - cameraX, Math.round(playerY * CELL) - cameraY,
                 CELL, Color.DODGERBLUE);
         minimap.draw(gc, VIEW_WIDTH, playerX, playerY);
+        if (hud != null) {
+            hud.draw(gc, zoneName, VIEW_WIDTH, VIEW_HEIGHT);
+        }
     }
 
     private void drawTile(GraphicsContext gc, int x, int y, double px, double py) {
