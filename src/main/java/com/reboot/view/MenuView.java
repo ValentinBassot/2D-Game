@@ -37,7 +37,6 @@ public abstract class MenuView extends StackPane {
 
     private static final Color BACKGROUND = Color.rgb(10, 14, 28);
     private static final double ITEM_WIDTH = 560;
-    private static final double ITEM_HEIGHT = 42;
 
     /** Une entrée de menu : un bouton ou un réglage ajustable à gauche et à droite. */
     protected record MenuItem(String label, Runnable onConfirm, IntConsumer onAdjust) {
@@ -121,6 +120,11 @@ public abstract class MenuView extends StackPane {
         return 300;
     }
 
+    /** @return la hauteur d'une entrée */
+    protected double itemHeight() {
+        return 42;
+    }
+
     /** @return l'index de l'entrée sélectionnée */
     protected final int getSelected() {
         return selected;
@@ -160,7 +164,7 @@ public abstract class MenuView extends StackPane {
 
     private int itemAt(double x, double y) {
         double left = (WIDTH - ITEM_WIDTH) / 2;
-        int index = (int) Math.floor((y - itemsTop()) / ITEM_HEIGHT);
+        int index = (int) Math.floor((y - itemsTop()) / itemHeight());
         boolean inside = x >= left && x <= left + ITEM_WIDTH && y >= itemsTop();
         return inside && index < items().size() ? index : -1;
     }
@@ -201,17 +205,17 @@ public abstract class MenuView extends StackPane {
         selected = Math.min(selected, items.size() - 1);
         double left = (WIDTH - ITEM_WIDTH) / 2;
         for (int i = 0; i < items.size(); i++) {
-            double y = itemsTop() + i * ITEM_HEIGHT;
+            double y = itemsTop() + i * itemHeight();
             if (i == selected) {
                 gc.setFill(HIGHLIGHT.deriveColor(0, 1, 1, 0.2));
-                gc.fillRect(left, y + 3, ITEM_WIDTH, ITEM_HEIGHT - 6);
+                gc.fillRect(left, y + 3, ITEM_WIDTH, itemHeight() - 6);
                 gc.setStroke(HIGHLIGHT);
                 gc.setLineWidth(2);
-                gc.strokeRect(left, y + 3, ITEM_WIDTH, ITEM_HEIGHT - 6);
+                gc.strokeRect(left, y + 3, ITEM_WIDTH, itemHeight() - 6);
             }
             gc.setFill(i == selected ? TEXT : MUTED);
             gc.setFont(Font.font("Monospaced", i == selected ? FontWeight.BOLD : FontWeight.NORMAL, 21));
-            gc.fillText(items.get(i).label(), WIDTH / 2.0, y + ITEM_HEIGHT / 2);
+            gc.fillText(items.get(i).label(), WIDTH / 2.0, y + itemHeight() / 2);
         }
 
         gc.setFill(MUTED);
