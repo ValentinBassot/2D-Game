@@ -2,12 +2,13 @@ package com.reboot.view;
 
 import com.reboot.model.fighter.Robot;
 import com.reboot.model.game.GameStatus;
+import com.reboot.model.settings.Action;
+import com.reboot.model.settings.KeyBindings;
 import com.reboot.model.team.Team;
 import java.util.List;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -27,15 +28,15 @@ public class EndView extends StackPane {
 
     private final Canvas canvas = new Canvas(WIDTH, HEIGHT);
 
-    public EndView(GameStatus status, Team team, Runnable onRestart) {
+    public EndView(GameStatus status, Team team, Runnable onMainMenu, KeyBindings keys) {
         if (status == GameStatus.IN_PROGRESS) {
             throw new IllegalArgumentException("The game is not over");
         }
         getChildren().add(canvas);
         setFocusTraversable(true);
         setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
-                onRestart.run();
+            if (keys.actionOf(event.getCode().name()).orElse(null) == Action.CONFIRM) {
+                onMainMenu.run();
             }
         });
         render(status == GameStatus.WON, team.getRobots());
@@ -74,6 +75,6 @@ public class EndView extends StackPane {
 
         gc.setFill(won ? VICTORY : DEFEAT);
         gc.setFont(Font.font("Monospaced", FontWeight.BOLD, 20));
-        gc.fillText("Entrée : nouvelle partie", WIDTH / 2.0, 600);
+        gc.fillText("Entrée : menu principal", WIDTH / 2.0, 600);
     }
 }

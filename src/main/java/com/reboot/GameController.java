@@ -6,6 +6,7 @@ import com.reboot.model.combat.Encounter;
 import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.game.Game;
+import com.reboot.model.settings.Settings;
 import com.reboot.model.story.MemoryBook;
 import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.Robot;
@@ -39,6 +40,7 @@ public class GameController implements CombatLauncher {
             3, new ZoneSpec("Data center", "/com/reboot/maps/zone3.txt", "z3", 8));
 
     private final ScaledScreen screen;
+    private final Settings settings;
     private final Random random = new Random();
     private final EncounterTrigger encounters = new EncounterTrigger(random, ENCOUNTER_ONE_IN);
     private final MemoryBook memories = MemoryBook.load(MemoryBook.DEFAULT_PATH);
@@ -51,8 +53,9 @@ public class GameController implements CombatLauncher {
     private TileMap map;
     private ExplorationView exploration;
 
-    public GameController(ScaledScreen screen) {
+    public GameController(ScaledScreen screen, Settings settings) {
         this.screen = screen;
+        this.settings = settings;
     }
 
     public void start() {
@@ -71,7 +74,7 @@ public class GameController implements CombatLauncher {
         }
         DiscoveredArea seen = discovered.computeIfAbsent(zone,
                 key -> new DiscoveredArea(map.getWidth(), map.getHeight()));
-        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen);
+        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen, settings.getKeys());
         exploration.setOnStep(this::onStep);
         exploration.setPortalOpen(ZONES::containsKey);
         exploration.setHud(new Hud(game), spec.name());
@@ -128,20 +131,21 @@ public class GameController implements CombatLauncher {
             } else {
                 afterVictory.run();
             }
-        });
+        }, settings.getKeys());
         screen.show(combat);
         combat.start();
     }
 
     private void showChoice(Robot robot) {
         String memory = memories.pick(robot.getType(), random);
-        ChoiceView choice = new ChoiceView(robot, memory, new ChoiceResolver(game), this::showExploration);
+        ChoiceView choice = new ChoiceView(robot, memory, new ChoiceResolver(game), this::showExploration,
+                settings.getKeys());
         screen.show(choice);
         choice.start();
     }
 
     private void showEnd() {
-        EndView end = new EndView(game.getStatus(), game.getTeam(), this::restart);
+        EndView end = new EndView(game.getStatus(), game.getTeam(), this::restart, settings.getKeys());
         screen.show(end);
         end.start();
     }

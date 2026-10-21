@@ -1,5 +1,6 @@
 package com.reboot;
 
+import com.reboot.model.settings.Settings;
 import com.reboot.view.ExplorationView;
 import com.reboot.view.ScaledScreen;
 import javafx.application.Application;
@@ -23,7 +24,7 @@ public class App extends Application {
         stage.setScene(scene);
         stage.setFullScreenExitHint("");
         stage.show();
-        new GameController(screen).start();
+        new GameController(screen, new Settings()).start();
     }
 
     public static void main(String[] args) {

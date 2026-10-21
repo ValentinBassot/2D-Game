@@ -7,13 +7,14 @@ import com.reboot.model.combat.EncounterResult;
 import com.reboot.model.combat.TurnResult;
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Robot;
+import com.reboot.model.settings.Action;
+import com.reboot.model.settings.KeyBindings;
 import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -46,6 +47,7 @@ public class CombatView extends StackPane {
     private final Encounter encounter;
     private final Combat combat;
     private final Consumer<EncounterResult> onEnd;
+    private final KeyBindings keys;
     private final SpriteStore sprites = new SpriteStore();
     private final Canvas canvas = new Canvas(WIDTH, HEIGHT);
     private final List<String> log = new ArrayList<>();
@@ -55,8 +57,10 @@ public class CombatView extends StackPane {
     /**
      * @param encounter la rencontre à jouer
      * @param onEnd appelé avec le résultat quand le joueur quitte l'écran après la fin du combat
+     * @param keys les touches du joueur
      */
-    public CombatView(Encounter encounter, Consumer<EncounterResult> onEnd) {
+    public CombatView(Encounter encounter, Consumer<EncounterResult> onEnd, KeyBindings keys) {
+        this.keys = keys;
         this.encounter = encounter;
         this.combat = encounter.getCombat();
         this.onEnd = onEnd;
@@ -74,8 +78,9 @@ public class CombatView extends StackPane {
     }
 
     private void onKeyPressed(KeyEvent event) {
+        Action action = keys.actionOf(event.getCode().name()).orElse(null);
         if (encounter.isFinished()) {
-            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
+            if (action == Action.CONFIRM) {
                 onEnd.accept(encounter.getResult());
             }
             return;
@@ -85,12 +90,12 @@ public class CombatView extends StackPane {
         if (shortcut >= 0 && shortcut < size) {
             selected = shortcut;
             confirm();
-        } else {
-            switch (event.getCode()) {
-                case Z, UP -> selected = (selected + size - 1) % size;
-                case S, DOWN -> selected = (selected + 1) % size;
-                case ENTER, SPACE -> confirm();
-                case ESCAPE, BACK_SPACE -> closeSwitchMenu();
+        } else if (action != null) {
+            switch (action) {
+                case MOVE_UP -> selected = (selected + size - 1) % size;
+                case MOVE_DOWN -> selected = (selected + 1) % size;
+                case CONFIRM -> confirm();
+                case PAUSE -> closeSwitchMenu();
                 default -> { }
             }
         }
