@@ -31,7 +31,15 @@ public class ChoiceResolver {
      * @return les conséquences, sur une ligne
      */
     public String previewReprogram(Robot robot) {
-        String destination = game.getTeam().isFull() ? "part à la Home" : "rejoint l'équipe";
+        String destination;
+        if (!game.getTeam().isFull()) {
+            destination = "rejoint l'équipe";
+        } else if (replacesTheWeakest(robot)) {
+            destination = "remplace " + game.getTeam().getWeakest().getName() + " (Nv "
+                    + game.getTeam().getWeakest().getLevel() + ")";
+        } else {
+            destination = "part à la Home";
+        }
         return "- " + WantedBar.REPROGRAM + " recherche · " + destination;
     }
 
@@ -46,8 +54,9 @@ public class ChoiceResolver {
     }
 
     /**
-     * Reprogramme le robot : il redevient bienveillant, est remis en état et rejoint l'équipe,
-     * ou la Home si l'équipe est pleine.
+     * Reprogramme le robot : il redevient bienveillant, est remis en état et rejoint l'équipe.
+     * Si l'équipe est pleine, il remplace le robot le plus faible quand il est plus fort que lui
+     * (le remplacé part à la Home), sinon il part lui-même à la Home.
      *
      * @param robot le robot vaincu, encore détourné
      * @return les conséquences à afficher
@@ -60,6 +69,12 @@ public class ChoiceResolver {
         String destination;
         if (game.getTeam().add(robot)) {
             destination = robot.getName() + " rejoint ton équipe.";
+        } else if (replacesTheWeakest(robot)) {
+            Robot weakest = game.getTeam().getWeakest();
+            game.getTeam().replace(weakest, robot);
+            game.getHome().store(weakest);
+            destination = robot.getName() + " remplace " + weakest.getName() + " (Nv " + weakest.getLevel()
+                    + "), qui part à la Home.";
         } else {
             game.getHome().store(robot);
             destination = robot.getName() + " part à la Home : ton équipe est pleine.";
@@ -88,6 +103,10 @@ public class ChoiceResolver {
                 "Barre de recherche : " + wantedBefore + " -> " + game.getWantedBar().getValue(),
                 "Le réseau NEXUS a enregistré sa défaite... (robots achevés : "
                         + game.getDataCenter().getRobotsKilled() + ")"));
+    }
+
+    private boolean replacesTheWeakest(Robot recruit) {
+        return recruit.getLevel() > game.getTeam().getWeakest().getLevel();
     }
 
     private static void requireHijacked(Robot robot) {
