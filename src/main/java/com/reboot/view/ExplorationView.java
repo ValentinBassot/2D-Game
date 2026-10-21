@@ -1,5 +1,7 @@
 package com.reboot.view;
 
+import com.reboot.model.settings.Action;
+import com.reboot.model.settings.KeyBindings;
 import com.reboot.model.world.Direction;
 import com.reboot.model.world.Player;
 import com.reboot.model.world.Tile;
@@ -11,7 +13,6 @@ import java.util.function.IntPredicate;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -39,6 +40,7 @@ public class ExplorationView extends StackPane {
     private final Deque<Direction> heldDirections = new ArrayDeque<>();
     private final DiscoveredArea discovered;
     private final Minimap minimap;
+    private final KeyBindings keys;
 
     private boolean stepping;
     private double stepProgress;
@@ -50,6 +52,7 @@ public class ExplorationView extends StackPane {
     private StepListener stepListener;
     private IntPredicate portalOpen = zone -> true;
     private Hud hud;
+    private Runnable onPause = () -> { };
     private String zoneName = "";
 
     private final AnimationTimer loop = new AnimationTimer() {
@@ -64,7 +67,9 @@ public class ExplorationView extends StackPane {
         }
     };
 
-    public ExplorationView(TileMap map, Player player, String zonePrefix, DiscoveredArea discovered) {
+    public ExplorationView(TileMap map, Player player, String zonePrefix, DiscoveredArea discovered,
+                           KeyBindings keys) {
+        this.keys = keys;
         this.map = map;
         this.player = player;
         this.zonePrefix = zonePrefix;
@@ -96,6 +101,10 @@ public class ExplorationView extends StackPane {
         this.portalOpen = portalOpen;
     }
 
+    public void setOnPause(Runnable onPause) {
+        this.onPause = onPause;
+    }
+
     public void setHud(Hud hud, String zoneName) {
         this.hud = hud;
         this.zoneName = zoneName;
@@ -116,27 +125,31 @@ public class ExplorationView extends StackPane {
     }
 
     private void onKeyPressed(KeyEvent event) {
-        Direction direction = directionOf(event.getCode());
+        if (keys.actionOf(event.getCode().name()).orElse(null) == Action.PAUSE) {
+            onPause.run();
+            return;
+        }
+        Direction direction = directionOf(event);
         if (direction != null && !heldDirections.contains(direction)) {
             heldDirections.push(direction);
         }
     }
 
     private void onKeyReleased(KeyEvent event) {
-        Direction direction = directionOf(event.getCode());
+        Direction direction = directionOf(event);
         if (direction != null) {
             heldDirections.remove(direction);
         }
     }
 
-    private static Direction directionOf(KeyCode code) {
-        return switch (code) {
-            case Z, UP -> Direction.UP;
-            case S, DOWN -> Direction.DOWN;
-            case Q, LEFT -> Direction.LEFT;
-            case D, RIGHT -> Direction.RIGHT;
+    private Direction directionOf(KeyEvent event) {
+        return keys.actionOf(event.getCode().name()).map(action -> switch (action) {
+            case MOVE_UP -> Direction.UP;
+            case MOVE_DOWN -> Direction.DOWN;
+            case MOVE_LEFT -> Direction.LEFT;
+            case MOVE_RIGHT -> Direction.RIGHT;
             default -> null;
-        };
+        }).orElse(null);
     }
 
     private void update(double elapsed) {

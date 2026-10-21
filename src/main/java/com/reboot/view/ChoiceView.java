@@ -3,6 +3,8 @@ package com.reboot.view;
 import com.reboot.model.fighter.Robot;
 import com.reboot.model.game.ChoiceOutcome;
 import com.reboot.model.game.ChoiceResolver;
+import com.reboot.model.settings.Action;
+import com.reboot.model.settings.KeyBindings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -53,6 +55,7 @@ public class ChoiceView extends StackPane {
     private final String memory;
     private final ChoiceResolver resolver;
     private final Runnable onDone;
+    private final KeyBindings keys;
     private final SpriteStore sprites = new SpriteStore();
     private final Canvas canvas = new Canvas(WIDTH, HEIGHT);
     private final Random jitter = new Random();
@@ -77,8 +80,10 @@ public class ChoiceView extends StackPane {
      * @param memory le souvenir du robot, tiré du {@link com.reboot.model.story.MemoryBook}
      * @param resolver applique le choix et décrit ses conséquences
      * @param onDone appelé quand le joueur quitte l'écran, après avoir vu les conséquences
+     * @param keys les touches du joueur
      */
-    public ChoiceView(Robot robot, String memory, ChoiceResolver resolver, Runnable onDone) {
+    public ChoiceView(Robot robot, String memory, ChoiceResolver resolver, Runnable onDone, KeyBindings keys) {
+        this.keys = keys;
         this.robot = robot;
         this.memory = memory;
         this.resolver = resolver;
@@ -101,22 +106,21 @@ public class ChoiceView extends StackPane {
 
     private void onKeyPressed(KeyEvent event) {
         KeyCode code = event.getCode();
+        Action action = keys.actionOf(code.name()).orElse(null);
         if (outcome != null) {
-            if (code == KeyCode.ENTER || code == KeyCode.SPACE) {
+            if (action == Action.CONFIRM) {
                 loop.stop();
                 onDone.run();
             }
             return;
         }
-        switch (code) {
-            case Q, LEFT, DIGIT1, NUMPAD1, AMPERSAND -> selected = 0;
-            case D, RIGHT, DIGIT2, NUMPAD2 -> selected = 1;
-            case ENTER, SPACE -> choose();
-            default -> {
-                if ("é".equals(event.getText())) {
-                    selected = 1;
-                }
-            }
+        if (action == Action.MOVE_LEFT || code == KeyCode.DIGIT1 || code == KeyCode.NUMPAD1 || code == KeyCode.AMPERSAND) {
+            selected = 0;
+        } else if (action == Action.MOVE_RIGHT || code == KeyCode.DIGIT2 || code == KeyCode.NUMPAD2
+                || "é".equals(event.getText())) {
+            selected = 1;
+        } else if (action == Action.CONFIRM) {
+            choose();
         }
     }
 
