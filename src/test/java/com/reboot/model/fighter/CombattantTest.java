@@ -87,6 +87,49 @@ class CombattantTest {
     }
 
     @Test
+    void enoughXp_raisesTheLevel_andAllTheStats() {
+        Combattant c = new TestFighter(1);
+        c.takeDamage(10);
+
+        assertEquals(1, c.gainXp(50));
+
+        assertEquals(2, c.getLevel());
+        assertEquals(66, c.getMaxHp());
+        assertEquals(56, c.getHp());
+        assertEquals(13, c.getDef());
+        assertEquals(0, c.getXp());
+    }
+
+    @Test
+    void theXpNeeded_growsWithTheLevel_andTheRestIsKept() {
+        Combattant c = new TestFighter(2);
+        assertEquals(100, c.getXpToNextLevel());
+        assertEquals(0, c.gainXp(90));
+        assertEquals(2, c.gainXp(260));
+        assertEquals(4, c.getLevel());
+        assertEquals(100, c.getXp());
+    }
+
+    @Test
+    void aKnockedOutFighter_levelsUp_withoutComingBack() {
+        Combattant c = new TestFighter(1);
+        c.takeDamage(999);
+        c.gainXp(50);
+        assertTrue(c.isKo());
+    }
+
+    @Test
+    void theXpReward_isTenTimesTheLevel() {
+        assertEquals(40, new TestFighter(4).getXpReward());
+    }
+
+    @Test
+    void negativeXp_isRejected() {
+        Combattant c = new TestFighter(1);
+        assertThrows(IllegalArgumentException.class, () -> c.gainXp(-1));
+    }
+
+    @Test
     void negativeDamage_isRejected() {
         Combattant c = new TestFighter(1);
         assertThrows(IllegalArgumentException.class, () -> c.takeDamage(-5));
