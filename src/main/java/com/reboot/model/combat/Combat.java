@@ -12,7 +12,7 @@ import java.util.List;
  *
  * <p>Quand le joueur se bat avec une équipe, il peut changer de robot : le changement coûte
  * le tour, sauf si le robot actif vient d'être mis K.O. Le combat est perdu quand plus aucun
- * robot de l'équipe ne peut se battre.
+ * robot de l'équipe ne peut se battre. Le robot qui met l'ennemi K.O. gagne l'XP de la victoire.
  */
 public class Combat {
 
@@ -141,6 +141,18 @@ public class Combat {
         log.add(skill.apply(attacker, defender));
         if (defender.isKo()) {
             log.add(defender.getName() + " est K.O. !");
+            if (defender == enemy) {
+                reward(attacker, log);
+            }
+        }
+    }
+
+    private void reward(Combattant winner, List<String> log) {
+        int xp = enemy.getXpReward();
+        int levels = winner.gainXp(xp);
+        log.add(winner.getName() + " gagne " + xp + " XP.");
+        if (levels > 0) {
+            log.add(winner.getName() + " passe au niveau " + winner.getLevel() + " !");
         }
     }
 
