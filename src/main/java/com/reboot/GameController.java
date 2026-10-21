@@ -117,7 +117,7 @@ public class GameController implements CombatLauncher {
 
     private void startCombat(Combattant enemy, Runnable afterVictory) {
         exploration.stop();
-        CombatView combat = new CombatView(new Encounter(game.getTeam().getActive(), enemy), result -> {
+        CombatView combat = new CombatView(new Encounter(game.getTeam(), enemy), result -> {
             game.onCombatEnd(result);
             if (game.isOver()) {
                 showEnd();

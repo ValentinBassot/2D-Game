@@ -157,6 +157,9 @@ public class Combat {
         return enemy.isKo() ? CombatOutcome.VICTORY : CombatOutcome.DEFEAT;
     }
 
+    /** @return tous les robots de l'équipe, vide pour un combat en solo */
+    public List<Robot> getRoster() { return roster; }
+
     /** @return le nombre de tours joués */
     public int getTurn() { return turn; }
 
