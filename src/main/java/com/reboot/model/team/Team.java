@@ -3,6 +3,7 @@ package com.reboot.model.team;
 import com.reboot.model.fighter.Robot;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Team {
@@ -52,6 +53,16 @@ public class Team {
 
     public List<Robot> getRobots() {
         return Collections.unmodifiableList(robots);
+    }
+
+    /** @return le niveau d'équipe : la somme des niveaux de ses robots */
+    public int getTeamLevel() {
+        return robots.stream().mapToInt(Robot::getLevel).sum();
+    }
+
+    /** @return le robot de plus bas niveau de l'équipe */
+    public Robot getWeakest() {
+        return robots.stream().min(Comparator.comparingInt(Robot::getLevel)).orElseThrow();
     }
 
     public boolean hasFighterLeft() {

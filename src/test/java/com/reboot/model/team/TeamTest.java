@@ -125,6 +125,16 @@ class TeamTest {
     }
 
     @Test
+    void theTeamLevel_isTheSumOfTheLevels_andTheWeakestIsFound() {
+        TankBot weak = ally(new TankBot(1));
+        Team team = new Team(ally(new InfighterBot(3)));
+        team.add(weak);
+        team.add(ally(new HealerBot(2)));
+        assertEquals(6, team.getTeamLevel());
+        assertSame(weak, team.getWeakest());
+    }
+
+    @Test
     void theRobotList_cannotBeModifiedFromOutside() {
         Team team = new Team(ally(new TankBot(1)));
         assertThrows(UnsupportedOperationException.class, () -> team.getRobots().clear());
