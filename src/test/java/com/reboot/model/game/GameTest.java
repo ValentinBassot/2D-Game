@@ -79,6 +79,21 @@ class GameTest {
     }
 
     @Test
+    void aRobotStoredAtTheHome_preventsTheGameOver_andJoinsAtTheHome() {
+        Game game = Game.newGame();
+        Robot starter = game.getTeam().getActive();
+        HealerBot stored = new HealerBot(2);
+        stored.reprogram();
+        game.getHome().store(stored);
+
+        game.onCombatEnd(defeatOf(starter));
+        assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
+
+        game.restAtHome();
+        assertEquals(stored, game.getTeam().getActive());
+    }
+
+    @Test
     void victories_repairTheFallenRobots() {
         InfighterBot starter = new InfighterBot(2);
         starter.reprogram();

@@ -1,7 +1,9 @@
 package com.reboot.model.team;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.InfighterBot;
 import com.reboot.model.fighter.Robot;
@@ -53,6 +55,41 @@ class HomeTest {
         Team team = new Team(starter);
         assertThrows(IllegalArgumentException.class,
                 () -> new Home().swap(team, starter, ally(new TankBot(1))));
+    }
+
+    @Test
+    void fillTeam_replacesTheRobotsUnderRepair_withReadyOnes() {
+        InfighterBot broken = ally(new InfighterBot(1));
+        TankBot fine = ally(new TankBot(1));
+        HealerBot stored = ally(new HealerBot(1));
+        Team team = new Team(broken);
+        team.add(fine);
+        Home home = new Home();
+        home.store(stored);
+        broken.takeDamage(999);
+        broken.handleKnockOut();
+
+        home.fillTeam(team);
+
+        assertEquals(List.of(stored, fine), team.getRobots());
+        assertEquals(List.of(broken), home.getStored());
+        assertTrue(home.hasNoFighter());
+    }
+
+    @Test
+    void storedRobots_keepRepairingWithEachVictory() {
+        InfighterBot broken = ally(new InfighterBot(1));
+        broken.takeDamage(999);
+        broken.handleKnockOut();
+        Home home = new Home();
+        home.store(broken);
+
+        for (int i = 0; i < 3; i++) {
+            home.recordVictory();
+        }
+
+        assertFalse(home.hasNoFighter());
+        assertEquals(broken.getMaxHp(), broken.getHp());
     }
 
     @Test

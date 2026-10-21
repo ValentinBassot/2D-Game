@@ -43,6 +43,30 @@ public class Home {
         stored.set(index, fromTeam);
     }
 
+    /**
+     * Remplace chaque robot de l'équipe en réparation par un robot de la Home prêt à se battre.
+     *
+     * @param team l'équipe du joueur
+     */
+    public void fillTeam(Team team) {
+        for (Robot member : List.copyOf(team.getRobots())) {
+            if (member.isUnderRepair()) {
+                stored.stream().filter(Robot::canFightForPlayer).findFirst()
+                        .ifPresent(ready -> swap(team, member, ready));
+            }
+        }
+    }
+
+    /** Fait avancer d'une victoire la réparation des robots rangés à la Home. */
+    public void recordVictory() {
+        stored.forEach(Robot::recordTeamVictory);
+    }
+
+    /** @return {@code true} si aucun robot rangé ne peut se battre */
+    public boolean hasNoFighter() {
+        return stored.stream().noneMatch(Robot::canFightForPlayer);
+    }
+
     /** @return les robots rangés, en lecture seule */
     public List<Robot> getStored() {
         return Collections.unmodifiableList(stored);
