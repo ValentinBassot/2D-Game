@@ -8,8 +8,9 @@ import com.reboot.model.fighter.Combattant;
 import com.reboot.model.game.Game;
 import com.reboot.model.settings.Settings;
 import com.reboot.model.story.MemoryBook;
-import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.Robot;
+import com.reboot.model.fighter.RobotFactory;
+import com.reboot.model.fighter.RobotType;
 import com.reboot.model.game.ChoiceResolver;
 import com.reboot.model.world.EncounterTrigger;
 import com.reboot.model.world.Player;
@@ -26,6 +27,7 @@ import com.reboot.view.OptionsView;
 import com.reboot.view.PauseView;
 import com.reboot.view.ScaledScreen;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import javafx.application.Platform;
@@ -35,13 +37,15 @@ public class GameController implements CombatLauncher {
     private static final int HOME = 0;
     private static final int ENCOUNTER_ONE_IN = 6;
 
-    private record ZoneSpec(String name, String mapPath, String spritePrefix, int level) {
+    private record ZoneSpec(String name, String mapPath, String spritePrefix, int level, List<RobotType> robots) {
     }
 
     private static final Map<Integer, ZoneSpec> ZONES = Map.of(
-            HOME, new ZoneSpec("Home de Léon", "/com/reboot/maps/home.txt", "home", 0),
-            1, new ZoneSpec("Quartier résidentiel", "/com/reboot/maps/zone1.txt", "z1", 2),
-            3, new ZoneSpec("Data center", "/com/reboot/maps/zone3.txt", "z3", 8));
+            HOME, new ZoneSpec("Home de Léon", "/com/reboot/maps/home.txt", "home", 0, List.of()),
+            1, new ZoneSpec("Quartier résidentiel", "/com/reboot/maps/zone1.txt", "z1", 2,
+                    List.of(RobotType.HEALER)),
+            3, new ZoneSpec("Data center", "/com/reboot/maps/zone3.txt", "z3", 8,
+                    List.of(RobotType.values())));
 
     private final ScaledScreen screen;
     private final Settings settings;
@@ -49,6 +53,7 @@ public class GameController implements CombatLauncher {
     private final Random random = new Random();
     private final EncounterTrigger encounters = new EncounterTrigger(random, ENCOUNTER_ONE_IN);
     private final MemoryBook memories = MemoryBook.load(MemoryBook.DEFAULT_PATH);
+    private final RobotFactory robots = new RobotFactory(random);
 
     private final Map<Integer, DiscoveredArea> discovered = new HashMap<>();
 
@@ -138,7 +143,9 @@ public class GameController implements CombatLauncher {
         } else if (tile == Tile.BOSS) {
             launch(new Boss());
         } else if (encounters.shouldTrigger(tile)) {
-            fightRobot(new HealerBot(ZONES.get(currentZone).level()));
+            ZoneSpec spec = ZONES.get(currentZone);
+            int level = RobotFactory.encounterLevel(spec.level(), game.getDataCenter().getNetworkBonus());
+            fightRobot(robots.createEncounter(spec.robots(), level));
         }
     }
 
