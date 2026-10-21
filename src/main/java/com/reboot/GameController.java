@@ -3,15 +3,18 @@ package com.reboot;
 import com.reboot.model.combat.CombatLauncher;
 import com.reboot.model.combat.CombatOutcome;
 import com.reboot.model.combat.Encounter;
-import com.reboot.model.combat.EncounterResult;
 import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.game.Game;
+import com.reboot.model.story.MemoryBook;
 import com.reboot.model.fighter.HealerBot;
+import com.reboot.model.fighter.Robot;
+import com.reboot.model.game.ChoiceResolver;
 import com.reboot.model.world.EncounterTrigger;
 import com.reboot.model.world.Player;
 import com.reboot.model.world.Tile;
 import com.reboot.model.world.TileMap;
+import com.reboot.view.ChoiceView;
 import com.reboot.view.CombatView;
 import com.reboot.view.DiscoveredArea;
 import com.reboot.view.EndView;
@@ -35,7 +38,9 @@ public class GameController implements CombatLauncher {
             3, new ZoneSpec("/com/reboot/maps/zone3.txt", "z3", 8));
 
     private final ScaledScreen screen;
-    private final EncounterTrigger encounters = new EncounterTrigger(new Random(), ENCOUNTER_ONE_IN);
+    private final Random random = new Random();
+    private final EncounterTrigger encounters = new EncounterTrigger(random, ENCOUNTER_ONE_IN);
+    private final MemoryBook memories = MemoryBook.load(MemoryBook.DEFAULT_PATH);
 
     private final Map<Integer, DiscoveredArea> discovered = new HashMap<>();
 
@@ -97,27 +102,40 @@ public class GameController implements CombatLauncher {
         } else if (tile == Tile.BOSS) {
             launch(new Boss());
         } else if (encounters.shouldTrigger(tile)) {
-            launch(new HealerBot(ZONES.get(currentZone).level()));
+            fightRobot(new HealerBot(ZONES.get(currentZone).level()));
         }
     }
 
     @Override
     public void launch(Combattant enemy) {
+        startCombat(enemy, this::showExploration);
+    }
+
+    private void fightRobot(Robot robot) {
+        startCombat(robot, () -> showChoice(robot));
+    }
+
+    private void startCombat(Combattant enemy, Runnable afterVictory) {
         exploration.stop();
-        CombatView combat = new CombatView(new Encounter(game.getTeam().getActive(), enemy), this::onCombatEnd);
+        CombatView combat = new CombatView(new Encounter(game.getTeam().getActive(), enemy), result -> {
+            game.onCombatEnd(result);
+            if (game.isOver()) {
+                showEnd();
+            } else if (result.outcome() == CombatOutcome.DEFEAT) {
+                enterZone(HOME, HOME);
+            } else {
+                afterVictory.run();
+            }
+        });
         screen.show(combat);
         combat.start();
     }
 
-    private void onCombatEnd(EncounterResult result) {
-        game.onCombatEnd(result);
-        if (game.isOver()) {
-            showEnd();
-        } else if (result.outcome() == CombatOutcome.DEFEAT) {
-            enterZone(HOME, HOME);
-        } else {
-            showExploration();
-        }
+    private void showChoice(Robot robot) {
+        String memory = memories.pick(robot.getType(), random);
+        ChoiceView choice = new ChoiceView(robot, memory, new ChoiceResolver(game), this::showExploration);
+        screen.show(choice);
+        choice.start();
     }
 
     private void showEnd() {
