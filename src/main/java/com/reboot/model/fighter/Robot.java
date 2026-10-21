@@ -50,6 +50,10 @@ public abstract class Robot extends Combattant {
         return state.isUnderRepair();
     }
 
+    public int getRepairVictoriesLeft() {
+        return state.getVictoriesLeft();
+    }
+
     public void reprogram() {
         state = state.onReprogram();
     }

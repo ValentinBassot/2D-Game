@@ -113,4 +113,15 @@ class RobotStateTest {
         robot.recordTeamVictory();
         assertEquals(50, robot.getHp());
     }
+
+    @Test
+    void repairVictoriesLeft_isZeroOutsideTheRepair() {
+        TankBot robot = new TankBot(1);
+        assertEquals(0, robot.getRepairVictoriesLeft());
+        robot.reprogram();
+        robot.handleKnockOut();
+        assertEquals(3, robot.getRepairVictoriesLeft());
+        robot.recordTeamVictory();
+        assertEquals(2, robot.getRepairVictoriesLeft());
+    }
 }

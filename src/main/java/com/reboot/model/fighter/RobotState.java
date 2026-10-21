@@ -10,6 +10,10 @@ public interface RobotState {
         return false;
     }
 
+    default int getVictoriesLeft() {
+        return 0;
+    }
+
     RobotState onReprogram();
 
     RobotState onKnockOut();

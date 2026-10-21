@@ -14,6 +14,7 @@ public class RepairingState implements RobotState {
         this.victoriesLeft = victoriesLeft;
     }
 
+    @Override
     public int getVictoriesLeft() {
         return victoriesLeft;
     }
