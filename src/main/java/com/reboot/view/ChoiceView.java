@@ -23,11 +23,11 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 /**
- * L'écran « Reprogrammer ou achever », affiché après une victoire contre un robot.
+ * Écran « Reprogrammer ou achever », affiché après une victoire contre un robot.
  *
- * <p>Tant que le joueur n'a pas choisi, le robot glitche entre son visage piraté (rouge)
- * et son visage d'origine (bleu). Le choix se fait au clavier ou à la souris, et l'option
- * sélectionnée affiche ses conséquences avant d'être validée.
+ * <p>Tant que le joueur n'a pas choisi, le robot glitche entre sa version piratée (rouge) et sa version
+ * d'origine (bleue). On choisit au clavier ou à la souris, et l'option sélectionnée montre ses conséquences
+ * avant validation.
  */
 public class ChoiceView extends StackPane {
 
@@ -76,6 +76,8 @@ public class ChoiceView extends StackPane {
     };
 
     /**
+     * Crée l'écran de choix pour un robot vaincu.
+     *
      * @param robot le robot vaincu, encore détourné
      * @param memory le souvenir du robot, tiré du {@link com.reboot.model.story.MemoryBook}
      * @param resolver applique le choix et décrit ses conséquences

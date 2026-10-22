@@ -14,10 +14,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 /**
- * Le HUD de l'exploration : la zone, la barre de recherche, les pièces et le réseau en haut
- * à gauche, l'équipe en bas, et le rappel des touches.
+ * HUD de l'exploration. En haut à gauche la zone, la barre de recherche, les pièces et le réseau, en bas
+ * l'équipe et le rappel des touches.
  *
- * <p>Le HUD ne fait que lire l'état de la partie : il ne le modifie jamais.
+ * <p>Il lit seulement l'état de la partie, il ne modifie rien.
  */
 public class Hud {
 
@@ -41,6 +41,8 @@ public class Hud {
     private final SpriteStore sprites = new SpriteStore();
 
     /**
+     * Crée le HUD d'une partie.
+     *
      * @param game la partie dont l'état est affiché
      */
     public Hud(Game game) {

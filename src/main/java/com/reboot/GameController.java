@@ -36,6 +36,11 @@ import java.util.Map;
 import java.util.Random;
 import javafx.application.Platform;
 
+/**
+ * Contrôleur principal. C'est lui qui passe d'un écran à l'autre (menus, exploration, combat, choix, fin)
+ * et qui fait le lien entre les vues et le modèle. Il implémente {@link CombatLauncher} pour que la carte
+ * puisse lancer un combat.
+ */
 public class GameController implements CombatLauncher {
 
     private static final int HOME = Campaign.HOME;
@@ -71,12 +76,20 @@ public class GameController implements CombatLauncher {
     private TileMap map;
     private ExplorationView exploration;
 
+    /**
+     * Crée le contrôleur.
+     *
+     * @param screen l'écran où afficher les vues
+     * @param settings les options du joueur
+     * @param onSettingsChanged appelé après chaque changement d'option, pour l'appliquer à la fenêtre
+     */
     public GameController(ScaledScreen screen, Settings settings, Runnable onSettingsChanged) {
         this.screen = screen;
         this.settings = settings;
         this.onSettingsChanged = onSettingsChanged;
     }
 
+    /** Affiche le menu principal. */
     public void start() {
         showMainMenu();
     }
