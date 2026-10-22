@@ -48,6 +48,28 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <!-- Écrans JavaFX et lancement : ils ne font que dessiner et brancher les vues, on les vérifie en jouant.
+                         Toute la logique testable est dans model (et Camera, DiscoveredArea), qui reste mesurée. -->
+                    <excludes>
+                        <exclude>com/reboot/App*</exclude>
+                        <exclude>com/reboot/GameController*</exclude>
+                        <exclude>com/reboot/view/ChoiceView*</exclude>
+                        <exclude>com/reboot/view/CombatView*</exclude>
+                        <exclude>com/reboot/view/EndView*</exclude>
+                        <exclude>com/reboot/view/ExplorationView*</exclude>
+                        <exclude>com/reboot/view/HomeView*</exclude>
+                        <exclude>com/reboot/view/Hud*</exclude>
+                        <exclude>com/reboot/view/MainMenuView*</exclude>
+                        <exclude>com/reboot/view/MenuView*</exclude>
+                        <exclude>com/reboot/view/Minimap*</exclude>
+                        <exclude>com/reboot/view/OptionsView*</exclude>
+                        <exclude>com/reboot/view/PauseView*</exclude>
+                        <exclude>com/reboot/view/QuestsView*</exclude>
+                        <exclude>com/reboot/view/ScaledScreen*</exclude>
+                        <exclude>com/reboot/view/SpriteStore*</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals><goal>prepare-agent</goal></goals>
@@ -56,6 +78,30 @@
                         <id>report</id>
                         <phase>test</phase>
                         <goals><goal>report</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
