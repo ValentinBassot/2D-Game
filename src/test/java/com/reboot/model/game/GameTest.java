@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.reboot.model.combat.CombatOutcome;
 import com.reboot.model.combat.EncounterResult;
+import com.reboot.model.event.RobotKilledEvent;
 import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Exosquelette;
@@ -93,6 +94,29 @@ class GameTest {
 
         assertFalse(starter.isUnderRepair());
         assertEquals(starter, team.getActive());
+    }
+
+    @Test
+    void beatingAZoneChief_neutralizesItsPilot() {
+        Game game = Game.newGame();
+        game.onCombatEnd(victoryAgainst(new Exosquelette(4)));
+        assertEquals(10, game.getWantedBar().getValue());
+    }
+
+    @Test
+    void beatingARobot_leavesTheWantedBar_untilTheChoice() {
+        Game game = Game.newGame();
+        game.onCombatEnd(victoryAgainst(new HealerBot(2)));
+        assertEquals(0, game.getWantedBar().getValue());
+    }
+
+    @Test
+    void theConsequences_listenToTheGameEvents() {
+        Game game = Game.newGame();
+        game.getEvents().publish(new RobotKilledEvent(new HealerBot(3)));
+        assertEquals(15, game.getWantedBar().getValue());
+        assertEquals(1, game.getDataCenter().getRobotsKilled());
+        assertEquals(2, game.getParts().getParts());
     }
 
     @Test

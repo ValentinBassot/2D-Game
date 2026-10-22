@@ -29,6 +29,23 @@ public class Team {
         return true;
     }
 
+    /**
+     * Remplace un robot de l'équipe par un autre, à la même place.
+     *
+     * @param out le robot qui quitte l'équipe
+     * @param in le robot qui le remplace
+     */
+    public void replace(Robot out, Robot in) {
+        int index = robots.indexOf(out);
+        if (index < 0) {
+            throw new IllegalArgumentException(out.getName() + " is not in the team");
+        }
+        if (in.isReprogrammable() || robots.contains(in)) {
+            throw new IllegalArgumentException(in.getName() + " cannot join the team");
+        }
+        robots.set(index, in);
+    }
+
     public boolean isFull() {
         return robots.size() >= MAX_SIZE;
     }

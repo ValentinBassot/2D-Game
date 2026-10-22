@@ -109,6 +109,22 @@ class TeamTest {
     }
 
     @Test
+    void replace_keepsThePlace_andRejectsInvalidRobots() {
+        InfighterBot first = ally(new InfighterBot(1));
+        TankBot second = ally(new TankBot(1));
+        HealerBot newcomer = ally(new HealerBot(1));
+        Team team = new Team(first);
+        team.add(second);
+
+        team.replace(first, newcomer);
+
+        assertSame(newcomer, team.getRobots().get(0));
+        assertThrows(IllegalArgumentException.class, () -> team.replace(first, ally(new TankBot(1))));
+        assertThrows(IllegalArgumentException.class, () -> team.replace(second, new TankBot(1)));
+        assertThrows(IllegalArgumentException.class, () -> team.replace(second, newcomer));
+    }
+
+    @Test
     void theRobotList_cannotBeModifiedFromOutside() {
         Team team = new Team(ally(new TankBot(1)));
         assertThrows(UnsupportedOperationException.class, () -> team.getRobots().clear());
