@@ -124,4 +124,21 @@ class RobotStateTest {
         robot.recordTeamVictory();
         assertEquals(2, robot.getRepairVictoriesLeft());
     }
+
+    @Test
+    void eventsThatDoNotConcernAState_leaveItUnchanged() {
+        TankBot hijacked = new TankBot(1);
+        hijacked.recordTeamVictory();
+        hijacked.useRepairPart();
+        assertInstanceOf(HijackedState.class, hijacked.getState());
+
+        TankBot ally = new TankBot(1);
+        ally.reprogram();
+        ally.useRepairPart();
+        assertInstanceOf(AllyState.class, ally.getState());
+
+        TankBot broken = brokenAlly();
+        broken.handleKnockOut();
+        assertEquals(RepairingState.VICTORIES_TO_REPAIR, broken.getRepairVictoriesLeft());
+    }
 }

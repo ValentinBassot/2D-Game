@@ -73,4 +73,13 @@ class QuestTest {
     void anEmptyGroup_isRejected() {
         assertThrows(IllegalArgumentException.class, () -> new QuestGroup("Vide", List.of()));
     }
+
+    @Test
+    void everyQuest_describesWhatToDo() {
+        assertEquals("Avoir 3 robots dans l'équipe", new TeamSizeQuest(3).getDescription());
+        assertEquals("Atteindre un niveau d'équipe de 11", new TeamLevelQuest(11).getDescription());
+        assertEquals("Vaincre l'exosquelette chef de zone", new ChiefQuest(1).getDescription());
+        assertEquals("Vaincre les gardes du data center", new GuardsQuest(3).getDescription());
+        assertEquals("Vaincre le chef de NEXUS", new BossQuest().getDescription());
+    }
 }
