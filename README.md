@@ -42,7 +42,9 @@ Les tests JUnit 5 couvrent le modèle du jeu (combat, robots, quêtes, équipe..
 
 Les badges en haut de cette page sont mis à jour par la CI à chaque push sur `dev` (workflow `Coverage`) : elle relance les tests et régénère les badges à partir du rapport JaCoCo. Le résumé de chaque exécution est visible dans l'onglet Actions, et le rapport détaillé par paquet est publié comme artefact par la workflow de tests.
 
-Le paquet `view` et le contrôleur sont peu couverts, et c'est voulu : ce sont les écrans JavaFX, qui dessinent sur un canvas et qu'on vérifie en jouant. Toute la logique testable est dans `model`, qui ne dépend pas de JavaFX, et c'est là que la couverture compte.
+La mesure porte sur le code testable : tout le paquet `model`, plus `Camera` et `DiscoveredArea`. Les écrans JavaFX (`*View`, `Hud`, `Minimap`, `SpriteStore`, `ScaledScreen`), `App` et `GameController` sont exclus dans le `pom.xml`. Ils ne font que dessiner sur un canvas et brancher les vues, on les vérifie en jouant. C'est pour ça qu'on a gardé le modèle sans aucune dépendance à JavaFX.
+
+`mvn verify` échoue si la couverture des instructions ou des lignes passe sous **85 %** (règle `jacoco:check`), donc la CI aussi.
 
 ## Stack prévue
 
