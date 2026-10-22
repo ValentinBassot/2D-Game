@@ -44,6 +44,24 @@ public class Home {
     }
 
     /**
+     * Fait entrer un robot rangé dans l'équipe, s'il y reste une place.
+     *
+     * @param team l'équipe du joueur
+     * @param robot un robot rangé à la Home
+     * @return {@code true} si le robot a rejoint l'équipe, {@code false} si l'équipe est pleine
+     */
+    public boolean sendToTeam(Team team, Robot robot) {
+        if (!stored.contains(robot)) {
+            throw new IllegalArgumentException(robot.getName() + " is not at the Home");
+        }
+        if (!team.add(robot)) {
+            return false;
+        }
+        stored.remove(robot);
+        return true;
+    }
+
+    /**
      * Remplace chaque robot de l'équipe en réparation par un robot de la Home prêt à se battre.
      *
      * @param team l'équipe du joueur
