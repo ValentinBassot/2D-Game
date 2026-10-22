@@ -23,7 +23,7 @@ public class Hud {
 
     private static final double MARGIN = 12;
     private static final double PANEL_WIDTH = 320;
-    private static final double PANEL_HEIGHT = 138;
+    private static final double PANEL_HEIGHT = 160;
     private static final double BAR_WIDTH = 190;
     private static final double CARD_WIDTH = 296;
     private static final double CARD_HEIGHT = 70;
@@ -35,6 +35,7 @@ public class Hud {
     private static final Color MUTED = Color.rgb(150, 158, 190);
     private static final Color TRACK = Color.rgb(50, 56, 80);
     private static final Color REPAIR = Color.rgb(255, 170, 60);
+    private static final Color QUEST = Color.rgb(255, 200, 80);
 
     private final Game game;
     private final SpriteStore sprites = new SpriteStore();
@@ -96,6 +97,12 @@ public class Hud {
         DataCenter dataCenter = game.getDataCenter();
         gc.fillText("Réseau NEXUS : " + dataCenter.getRobotsKilled() + " achevé(s) · + "
                 + dataCenter.getNetworkBonus(), x + 14, y + 124);
+
+        gc.setFill(QUEST);
+        gc.fillText(game.getCampaign().current(game)
+                .map(chapter -> "Quêtes : " + chapter.getProgress(game) + " / " + chapter.getTarget(game)
+                        + " (Échap > Quêtes)")
+                .orElse("Quêtes terminées"), x + 14, y + 147);
     }
 
     private void drawTeam(GraphicsContext gc, double y) {
