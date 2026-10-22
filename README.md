@@ -1,5 +1,7 @@
 # Reboot
 
+![Couverture](.github/badges/jacoco.svg) ![Branches](.github/badges/branches.svg)
+
 RPG futuriste en vue de dessus, en Java + JavaFX. Projet « 2D Game » (POO), par Paul et Valentin.
 
 À Néo-Lyon, le groupe radical NEXUS a piraté le data center qui relie toutes les IA. Léon affronte les robots détournés, et après chaque victoire, il choisit : **reprogrammer** le robot pour l'ajouter à son équipe, ou l'**achever**. Chaque choix change le monde.
@@ -26,12 +28,21 @@ sudo apt install openjdk-21-jdk maven
 | `mvn javafx:run` | Lance le jeu |
 | `mvn verify` | Compile, lance les tests et génère le rapport de couverture dans `target/site/jacoco/index.html` |
 | `mvn checkstyle:check` | Vérifie les règles de style (comme la CI) |
+| `mvn javadoc:javadoc` | Génère la Javadoc dans `target/reports/apidocs/index.html` |
 
 Le jeu s'ouvre sur la Home. Léon se déplace avec **ZQSD** ou les **flèches**.
 
 Le portail allumé de la Home mène à la zone 1. Marcher dans l'herbe y déclenche des combats : on choisit une attaque avec **1, 2, 3** (ou les flèches puis **Entrée**).
 
 Sous WSL, la fenêtre s'affiche grâce à WSLg (Windows 11, ou Windows 10 à jour) : aucun serveur X à installer.
+
+## Tests et couverture
+
+Les tests JUnit 5 couvrent le modèle du jeu (combat, robots, quêtes, équipe...). La couverture est mesurée par JaCoCo pendant `mvn verify`.
+
+Les badges en haut de cette page sont mis à jour par la CI à chaque push sur `dev` (workflow `Coverage`) : elle relance les tests et régénère les badges à partir du rapport JaCoCo. Le résumé de chaque exécution est visible dans l'onglet Actions, et le rapport détaillé par paquet est publié comme artefact par la workflow de tests.
+
+Le paquet `view` et le contrôleur sont peu couverts, et c'est voulu : ce sont les écrans JavaFX, qui dessinent sur un canvas et qu'on vérifie en jouant. Toute la logique testable est dans `model`, qui ne dépend pas de JavaFX, et c'est là que la couverture compte.
 
 ## Stack prévue
 
