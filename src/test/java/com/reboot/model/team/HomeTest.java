@@ -93,6 +93,33 @@ class HomeTest {
     }
 
     @Test
+    void sendToTeam_movesAStoredRobot_whenThereIsRoom() {
+        Team team = new Team(ally(new InfighterBot(1)));
+        Home home = new Home();
+        HealerBot stored = ally(new HealerBot(1));
+        home.store(stored);
+
+        assertTrue(home.sendToTeam(team, stored));
+
+        assertTrue(team.getRobots().contains(stored));
+        assertTrue(home.getStored().isEmpty());
+    }
+
+    @Test
+    void sendToTeam_keepsTheRobot_whenTheTeamIsFull() {
+        Team team = new Team(ally(new InfighterBot(1)));
+        team.add(ally(new TankBot(1)));
+        team.add(ally(new HealerBot(1)));
+        Home home = new Home();
+        TankBot stored = ally(new TankBot(2));
+        home.store(stored);
+
+        assertFalse(home.sendToTeam(team, stored));
+        assertEquals(List.of(stored), home.getStored());
+        assertThrows(IllegalArgumentException.class, () -> home.sendToTeam(team, ally(new TankBot(1))));
+    }
+
+    @Test
     void storedRobots_cannotBeModifiedFromOutside() {
         Home home = new Home();
         assertThrows(UnsupportedOperationException.class, () -> home.getStored().add(ally(new TankBot(1))));
