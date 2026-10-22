@@ -6,6 +6,7 @@ import com.reboot.model.combat.Encounter;
 import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.game.Game;
+import com.reboot.model.settings.Settings;
 import com.reboot.model.story.MemoryBook;
 import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.Robot;
@@ -20,10 +21,14 @@ import com.reboot.view.DiscoveredArea;
 import com.reboot.view.EndView;
 import com.reboot.view.ExplorationView;
 import com.reboot.view.Hud;
+import com.reboot.view.MainMenuView;
+import com.reboot.view.OptionsView;
+import com.reboot.view.PauseView;
 import com.reboot.view.ScaledScreen;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import javafx.application.Platform;
 
 public class GameController implements CombatLauncher {
 
@@ -39,6 +44,8 @@ public class GameController implements CombatLauncher {
             3, new ZoneSpec("Data center", "/com/reboot/maps/zone3.txt", "z3", 8));
 
     private final ScaledScreen screen;
+    private final Settings settings;
+    private final Runnable onSettingsChanged;
     private final Random random = new Random();
     private final EncounterTrigger encounters = new EncounterTrigger(random, ENCOUNTER_ONE_IN);
     private final MemoryBook memories = MemoryBook.load(MemoryBook.DEFAULT_PATH);
@@ -51,12 +58,38 @@ public class GameController implements CombatLauncher {
     private TileMap map;
     private ExplorationView exploration;
 
-    public GameController(ScaledScreen screen) {
+    public GameController(ScaledScreen screen, Settings settings, Runnable onSettingsChanged) {
         this.screen = screen;
+        this.settings = settings;
+        this.onSettingsChanged = onSettingsChanged;
     }
 
     public void start() {
-        enterZone(HOME, HOME);
+        showMainMenu();
+    }
+
+    private void showMainMenu() {
+        if (exploration != null) {
+            exploration.stop();
+        }
+        MainMenuView menu = new MainMenuView(settings.getKeys(), this::newGame,
+                () -> showOptions(this::showMainMenu), Platform::exit);
+        screen.show(menu);
+        menu.start();
+    }
+
+    private void showPause() {
+        exploration.stop();
+        PauseView pause = new PauseView(settings.getKeys(), this::showExploration,
+                () -> showOptions(this::showPause), this::showMainMenu);
+        screen.show(pause);
+        pause.start();
+    }
+
+    private void showOptions(Runnable back) {
+        OptionsView options = new OptionsView(settings, onSettingsChanged, back);
+        screen.show(options);
+        options.start();
     }
 
     private void enterZone(int zone, int from) {
@@ -71,8 +104,9 @@ public class GameController implements CombatLauncher {
         }
         DiscoveredArea seen = discovered.computeIfAbsent(zone,
                 key -> new DiscoveredArea(map.getWidth(), map.getHeight()));
-        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen);
+        exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen, settings.getKeys());
         exploration.setOnStep(this::onStep);
+        exploration.setOnPause(this::showPause);
         exploration.setPortalOpen(ZONES::containsKey);
         exploration.setHud(new Hud(game), spec.name());
         showExploration();
@@ -128,25 +162,26 @@ public class GameController implements CombatLauncher {
             } else {
                 afterVictory.run();
             }
-        });
+        }, settings.getKeys());
         screen.show(combat);
         combat.start();
     }
 
     private void showChoice(Robot robot) {
         String memory = memories.pick(robot.getType(), random);
-        ChoiceView choice = new ChoiceView(robot, memory, new ChoiceResolver(game), this::showExploration);
+        ChoiceView choice = new ChoiceView(robot, memory, new ChoiceResolver(game), this::showExploration,
+                settings.getKeys());
         screen.show(choice);
         choice.start();
     }
 
     private void showEnd() {
-        EndView end = new EndView(game.getStatus(), game.getTeam(), this::restart);
+        EndView end = new EndView(game.getStatus(), game.getTeam(), this::showMainMenu, settings.getKeys());
         screen.show(end);
         end.start();
     }
 
-    private void restart() {
+    private void newGame() {
         game = Game.newGame();
         discovered.clear();
         enterZone(HOME, HOME);
