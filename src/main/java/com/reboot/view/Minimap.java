@@ -5,6 +5,7 @@ import com.reboot.model.world.TileMap;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
+/** Minimap avec les cases déjà découvertes et la position de Léon. */
 public class Minimap {
 
     private static final double MAX_WIDTH = 180;
@@ -24,12 +25,26 @@ public class Minimap {
     private final DiscoveredArea discovered;
     private final double cell;
 
+    /**
+     * Crée la minimap d'une zone.
+     *
+     * @param map la carte
+     * @param discovered les cases déjà vues
+     */
     public Minimap(TileMap map, DiscoveredArea discovered) {
         this.map = map;
         this.discovered = discovered;
         this.cell = Math.max(1, Math.floor(Math.min(MAX_WIDTH / map.getWidth(), MAX_HEIGHT / map.getHeight())));
     }
 
+    /**
+     * Dessine la minimap en haut à droite.
+     *
+     * @param gc le contexte graphique
+     * @param viewWidth la largeur de la vue
+     * @param playerX la colonne de Léon, décimale pendant un pas
+     * @param playerY la ligne de Léon, décimale pendant un pas
+     */
     public void draw(GraphicsContext gc, double viewWidth, double playerX, double playerY) {
         double width = map.getWidth() * cell;
         double height = map.getHeight() * cell;

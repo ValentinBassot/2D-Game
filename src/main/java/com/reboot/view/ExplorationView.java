@@ -22,14 +22,22 @@ import javafx.scene.shape.ArcType;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
+/**
+ * Écran d'exploration avec la carte autour de Léon, la minimap et le HUD. La boucle de jeu lit les touches,
+ * met à jour le déplacement et redessine.
+ */
 public class ExplorationView extends StackPane {
 
+    /** La taille d'une tuile dans les images, en pixels. */
     public static final int TILE_SIZE = 32;
 
+    /** Le zoom appliqué aux tuiles. */
     public static final int ZOOM = 3;
 
+    /** La largeur de base de l'écran. */
     public static final int VIEW_WIDTH = 960;
 
+    /** La hauteur de base de l'écran. */
     public static final int VIEW_HEIGHT = 720;
 
     private static final int CELL = TILE_SIZE * ZOOM;
@@ -78,6 +86,15 @@ public class ExplorationView extends StackPane {
         }
     };
 
+    /**
+     * Crée la vue d'une zone.
+     *
+     * @param map la carte
+     * @param player Léon
+     * @param zonePrefix le préfixe des tuiles de la zone ({@code z1}, {@code home}...)
+     * @param discovered les cases déjà vues
+     * @param keys les touches du joueur
+     */
     public ExplorationView(TileMap map, Player player, String zonePrefix, DiscoveredArea discovered,
                            KeyBindings keys) {
         this.keys = keys;
@@ -98,43 +115,88 @@ public class ExplorationView extends StackPane {
         });
     }
 
+    /** Reçoit une case de la carte. */
     @FunctionalInterface
     public interface TileListener {
 
+        /**
+         * Appelée avec la case concernée.
+         *
+         * @param x la colonne
+         * @param y la ligne
+         */
         void onTile(int x, int y);
     }
 
+    /**
+     * Prévient à chaque pas terminé.
+     *
+     * @param listener reçoit la case d'arrivée
+     */
     public void setOnStep(TileListener listener) {
         this.stepListener = listener;
     }
 
+    /**
+     * Choisit quels portails sont allumés.
+     *
+     * @param portalOpen reçoit le numéro de zone du portail
+     */
     public void setPortalOpen(IntPredicate portalOpen) {
         this.portalOpen = portalOpen;
     }
 
+    /**
+     * Prévient quand Léon se heurte à une case bloquée, comme un chef de zone.
+     *
+     * @param listener reçoit la case heurtée
+     */
     public void setOnBump(TileListener listener) {
         this.bumpListener = listener;
     }
 
+    /**
+     * Décrit le gardien de la zone (chef ou boss).
+     *
+     * @param present {@code true} tant qu'il n'est pas vaincu
+     * @param open {@code true} s'il accepte le combat
+     */
     public void setGuardian(BooleanSupplier present, BooleanSupplier open) {
         this.guardianPresent = present;
         this.guardianOpen = open;
     }
 
+    /**
+     * Affiche un message quelques secondes au-dessus de la carte.
+     *
+     * @param text le message
+     */
     public void showMessage(String text) {
         this.message = text;
         this.messageTimeLeft = MESSAGE_SECONDS;
     }
 
+    /**
+     * Prévient quand le joueur ouvre la pause.
+     *
+     * @param onPause appelé à l'appui sur la touche Pause
+     */
     public void setOnPause(Runnable onPause) {
         this.onPause = onPause;
     }
 
+    /**
+     * Ajoute le HUD par-dessus la carte.
+     *
+     * @param hud le HUD
+     * @param zoneName le nom de la zone affiché
+     */
     public void setHud(Hud hud, String zoneName) {
         this.hud = hud;
         this.zoneName = zoneName;
     }
 
+    /** Démarre la boucle de jeu et prend le focus du clavier. */
     public void start() {
         requestFocus();
         lastFrame = 0;
@@ -142,6 +204,7 @@ public class ExplorationView extends StackPane {
         loop.start();
     }
 
+    /** Arrête la boucle de jeu et oublie les touches enfoncées. */
     public void stop() {
         running = false;
         loop.stop();

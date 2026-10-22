@@ -12,6 +12,8 @@ public class PauseView extends MenuView {
     private final Runnable onMainMenu;
 
     /**
+     * Crée le menu pause.
+     *
      * @param keys les touches du joueur
      * @param onResume reprend la partie
      * @param onQuests ouvre l'onglet des quêtes

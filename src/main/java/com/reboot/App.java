@@ -19,8 +19,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 /**
- * Le point d'entrée JavaFX : il ouvre la fenêtre, charge les options du joueur
- * et les applique à chaque changement.
+ * Point d'entrée JavaFX. Ouvre la fenêtre, charge les options du joueur et les réapplique dès qu'elles
+ * changent.
  */
 public class App extends Application {
 
@@ -29,6 +29,10 @@ public class App extends Application {
     private Stage stage;
     private ScaledScreen screen;
     private Settings settings;
+
+    /** Constructeur appelé par JavaFX au lancement, on ne l'utilise pas directement. */
+    public App() {
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -90,6 +94,11 @@ public class App extends Application {
         }
     }
 
+    /**
+     * Lance le jeu.
+     *
+     * @param args les arguments de la ligne de commande, non utilisés
+     */
     public static void main(String[] args) {
         launch();
     }

@@ -8,7 +8,7 @@ package com.reboot.model.settings;
  */
 public record WindowSize(int width, int height) {
 
-    /** @return la taille sous la forme {@code 960 x 720} */
+    /** {@return la taille sous la forme {@code 960 x 720}} */
     public String label() {
         return width + " x " + height;
     }

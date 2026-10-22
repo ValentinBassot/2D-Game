@@ -16,11 +16,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 /**
- * Un écran de menu : un titre et une liste d'entrées, au clavier ou à la souris.
+ * Écran de menu générique, avec un titre et une liste d'entrées, utilisable au clavier ou à la souris.
  *
- * <p>Pattern Template Method : cette classe fixe le déroulé (navigation, validation, rendu)
- * et chaque menu ne décrit que son titre et ses entrées. Ajouter un menu revient à écrire
- * une sous-classe, sans toucher à la navigation.
+ * <p>On utilise le pattern Template Method. Cette classe gère la navigation et le rendu, et chaque menu
+ * donne juste son titre et ses entrées. Pour un nouveau menu, il suffit d'écrire une sous-classe.
  */
 public abstract class MenuView extends StackPane {
 
@@ -38,22 +37,30 @@ public abstract class MenuView extends StackPane {
     private static final Color BACKGROUND = Color.rgb(10, 14, 28);
     private static final double ITEM_WIDTH = 560;
 
-    /** Une entrée de menu : un bouton ou un réglage ajustable à gauche et à droite. */
+    /**
+     * Entrée de menu, soit un bouton, soit un réglage qu'on ajuste avec Gauche et Droite.
+     *
+     * @param label le texte affiché
+     * @param onConfirm ce que fait la validation
+     * @param onAdjust reçoit {@code -1} ou {@code 1} quand le joueur appuie sur Gauche ou Droite
+     */
     protected record MenuItem(String label, Runnable onConfirm, IntConsumer onAdjust) {
 
         /**
+         * {@return un bouton qui lance une action}
+         *
          * @param label le texte de l'entrée
          * @param action ce que fait la validation
-         * @return un bouton
          */
         public static MenuItem button(String label, Runnable action) {
             return new MenuItem(label, action, delta -> { });
         }
 
         /**
+         * {@return un réglage modifiable avec Gauche et Droite}
+         *
          * @param label le texte de l'entrée, avec sa valeur actuelle
          * @param adjust reçoit {@code -1} ou {@code 1} ; valider revient à augmenter
-         * @return un réglage
          */
         public static MenuItem setting(String label, IntConsumer adjust) {
             return new MenuItem(label, () -> adjust.accept(1), adjust);
@@ -66,6 +73,8 @@ public abstract class MenuView extends StackPane {
     private int selected;
 
     /**
+     * Crée un menu piloté par les touches du joueur.
+     *
      * @param keys les touches du joueur
      */
     protected MenuView(KeyBindings keys) {
@@ -77,28 +86,28 @@ public abstract class MenuView extends StackPane {
         setOnMouseClicked(this::onMouseClicked);
     }
 
-    /** @return le titre du menu */
+    /** {@return le titre du menu} */
     protected abstract String title();
 
-    /** @return les entrées du menu, recalculées à chaque affichage pour montrer les valeurs à jour */
+    /** {@return les entrées du menu (recalculées à chaque affichage pour avoir les valeurs à jour)} */
     protected abstract List<MenuItem> items();
 
-    /** @return une ligne sous le titre, vide par défaut */
+    /** {@return une ligne sous le titre, vide par défaut} */
     protected String subtitle() {
         return "";
     }
 
-    /** @return l'aide affichée en bas de l'écran */
+    /** {@return l'aide affichée en bas de l'écran} */
     protected String footer() {
         return "Entrée : valider  ·  Gauche / Droite : régler  ·  Échap : retour";
     }
 
-    /** Appelée quand le joueur demande à revenir en arrière ; ne fait rien par défaut. */
+    /** Appelée quand le joueur veut revenir en arrière. Ne fait rien par défaut. */
     protected void onBack() {
     }
 
     /**
-     * Laisse un menu traiter une touche avant la navigation, par exemple pour réassigner une touche.
+     * Permet à un menu de traiter une touche avant la navigation, par exemple pour changer une touche.
      *
      * @param event la touche pressée
      * @return {@code true} si la touche a été traitée
@@ -108,24 +117,24 @@ public abstract class MenuView extends StackPane {
     }
 
     /**
-     * Dessine un décor propre au menu, sous les entrées ; rien par défaut.
+     * Dessine un décor sous les entrées. Vide par défaut.
      *
      * @param gc le contexte graphique
      */
     protected void decorate(GraphicsContext gc) {
     }
 
-    /** @return la hauteur de la première entrée */
+    /** {@return la hauteur de la première entrée} */
     protected double itemsTop() {
         return 300;
     }
 
-    /** @return la hauteur d'une entrée */
+    /** {@return la hauteur d'une entrée} */
     protected double itemHeight() {
         return 42;
     }
 
-    /** @return l'index de l'entrée sélectionnée */
+    /** {@return l'index de l'entrée sélectionnée} */
     protected final int getSelected() {
         return selected;
     }

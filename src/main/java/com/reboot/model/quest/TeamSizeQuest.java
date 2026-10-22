@@ -1,11 +1,15 @@
 package com.reboot.model.quest;
 
-/** Avoir un certain nombre de robots dans l'équipe : il faut en reprogrammer. */
+/** Quête qui demande un certain nombre de robots dans l'équipe, donc d'en reprogrammer. */
 public class TeamSizeQuest implements Quest {
 
     private final int target;
 
-    /** @param target le nombre de robots à atteindre */
+    /**
+     * Crée la quête de taille d'équipe.
+     *
+     * @param target le nombre de robots à atteindre
+     */
     public TeamSizeQuest(int target) {
         this.target = target;
     }

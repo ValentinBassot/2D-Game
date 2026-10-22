@@ -1,8 +1,8 @@
 package com.reboot.model.event;
 
 /**
- * Reçoit les événements du jeu. Chaque méthode ne fait rien par défaut :
- * un listener ne redéfinit que les événements qui le concernent.
+ * Reçoit les événements du jeu. Par défaut les méthodes ne font rien, donc un listener redéfinit seulement
+ * ce qui l'intéresse.
  */
 public interface GameEventListener {
 

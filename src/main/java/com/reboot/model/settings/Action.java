@@ -21,6 +21,6 @@ public enum Action {
         this.label = label;
     }
 
-    /** @return le nom de l'action, affiché dans les options */
+    /** {@return le nom de l'action, affiché dans les options} */
     public String getLabel() { return label; }
 }

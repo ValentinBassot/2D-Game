@@ -1,14 +1,18 @@
 package com.reboot.model.quest;
 
 /**
- * Vaincre les gardes du data center. Leur nombre dépend de la barre de recherche à l'entrée :
- * peu de gardes par l'entrée discrète, beaucoup par l'entrée principale.
+ * Quête des gardes du data center. Leur nombre dépend de la barre de recherche à l'entrée, avec peu de
+ * gardes par l'entrée discrète et plus par l'entrée principale.
  */
 public class GuardsQuest implements Quest {
 
     private final int zone;
 
-    /** @param zone le numéro du data center */
+    /**
+     * Crée la quête des gardes du data center.
+     *
+     * @param zone le numéro du data center
+     */
     public GuardsQuest(int zone) {
         this.zone = zone;
     }

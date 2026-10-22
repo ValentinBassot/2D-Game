@@ -2,11 +2,18 @@ package com.reboot.model.skill;
 
 import com.reboot.model.fighter.Combattant;
 
+/** Compétence de soin, rend des PV au lanceur. */
 public class HealSkill implements Skill {
 
     private final String name;
     private final int amount;
 
+    /**
+     * Crée un soin.
+     *
+     * @param name son nom
+     * @param amount les PV rendus, strictement positifs
+     */
     public HealSkill(String name, int amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Heal amount must be positive");
@@ -25,5 +32,6 @@ public class HealSkill implements Skill {
     @Override
     public String getName() { return name; }
 
+    /** {@return les PV rendus} */
     public int getAmount() { return amount; }
 }

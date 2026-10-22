@@ -8,8 +8,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 /**
- * Les options : taille de la fenêtre, plein écran, luminosité et touches.
- * Chaque changement est appliqué tout de suite, sans redémarrer le jeu.
+ * Écran des options (fenêtre, plein écran, luminosité, touches). Les changements s'appliquent tout de
+ * suite, pas besoin de relancer le jeu.
  */
 public class OptionsView extends MenuView {
 
@@ -19,6 +19,8 @@ public class OptionsView extends MenuView {
     private Action waitingFor;
 
     /**
+     * Crée l'écran des options.
+     *
      * @param settings les options à modifier
      * @param onChange appelé après chaque changement, pour l'appliquer et l'enregistrer
      * @param onClose ferme les options
