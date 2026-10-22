@@ -1,0 +1,51 @@
+name: Coverage
+
+# Met à jour les badges de couverture du README à chaque push sur dev.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: coverage
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    name: Update the coverage badges
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Build, test and measure the coverage
+        run: mvn --batch-mode verify
+      - name: Generate the coverage badges
+        uses: cicirello/jacoco-badge-generator@72266185b7ee48a6fd74eaf0238395cc8b14fef8 # v2.12.1
+        with:
+          jacoco-csv-file: target/site/jacoco/jacoco.csv
+          badges-directory: .github/badges
+          generate-branches-badge: true
+          coverage-label: couverture
+          branches-label: branches
+          generate-workflow-summary: true
+      - name: Commit the badges if they changed
+        run: |
+          git add .github/badges
+          if git diff --cached --quiet; then
+            echo "Coverage unchanged, nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(coverage): update the coverage badges [skip ci]"
+          git push
