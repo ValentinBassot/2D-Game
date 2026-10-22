@@ -12,9 +12,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
-/**
- * L'onglet Quêtes : ce qu'il reste à faire pour débloquer la zone suivante, chapitre par chapitre.
- */
+/** Onglet Quêtes. Montre, chapitre par chapitre, ce qu'il reste à faire pour débloquer la zone suivante. */
 public class QuestsView extends MenuView {
 
     private static final double LEFT = 150;
@@ -29,6 +27,8 @@ public class QuestsView extends MenuView {
     private final Runnable onClose;
 
     /**
+     * Crée l'onglet des quêtes.
+     *
      * @param keys les touches du joueur
      * @param game la partie dont les quêtes sont affichées
      * @param onClose ferme l'onglet

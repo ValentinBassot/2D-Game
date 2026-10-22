@@ -16,6 +16,8 @@ public class MainMenuView extends MenuView {
     private final Runnable onQuit;
 
     /**
+     * Crée le menu principal.
+     *
      * @param keys les touches du joueur
      * @param onNewGame lance une nouvelle partie
      * @param onOptions ouvre les options

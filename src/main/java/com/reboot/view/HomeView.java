@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Le poste de la Home : composer son équipe avec les robots rangés et dépenser des pièces
- * pour réparer les robots K.O.
+ * Poste de la Home. On y compose son équipe avec les robots rangés et on dépense des pièces pour réparer
+ * les robots K.O.
  */
 public class HomeView extends MenuView {
 
@@ -19,6 +19,8 @@ public class HomeView extends MenuView {
     private String feedback = "";
 
     /**
+     * Crée le poste de la Home.
+     *
      * @param keys les touches du joueur
      * @param game la partie dont l'équipe et la Home sont gérées
      * @param onClose ferme le poste

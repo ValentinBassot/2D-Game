@@ -15,6 +15,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
+/** Écran de fin (victoire ou game over) avec l'état de l'équipe. */
 public class EndView extends StackPane {
 
     private static final int WIDTH = ExplorationView.VIEW_WIDTH;
@@ -28,6 +29,15 @@ public class EndView extends StackPane {
 
     private final Canvas canvas = new Canvas(WIDTH, HEIGHT);
 
+    /**
+     * Crée l'écran de fin.
+     *
+     * @param status l'état final de la partie
+     * @param team l'équipe du joueur
+     * @param onMainMenu ramène au menu principal
+     * @param keys les touches du joueur
+     * @throws IllegalArgumentException si la partie n'est pas finie
+     */
     public EndView(GameStatus status, Team team, Runnable onMainMenu, KeyBindings keys) {
         if (status == GameStatus.IN_PROGRESS) {
             throw new IllegalArgumentException("The game is not over");
@@ -42,6 +52,7 @@ public class EndView extends StackPane {
         render(status == GameStatus.WON, team.getRobots());
     }
 
+    /** Prend le focus du clavier. */
     public void start() {
         requestFocus();
     }

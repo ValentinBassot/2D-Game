@@ -22,8 +22,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * L'écran de combat : le robot du joueur de dos, l'ennemi de face, le journal des tours
- * et le menu d'actions (compétences ou changement de robot).
+ * Écran de combat. On voit le robot du joueur de dos et l'ennemi de face, avec le journal des tours et le
+ * menu d'actions.
  */
 public class CombatView extends StackPane {
 
@@ -55,6 +55,8 @@ public class CombatView extends StackPane {
     private int selected;
 
     /**
+     * Crée l'écran de combat d'une rencontre.
+     *
      * @param encounter la rencontre à jouer
      * @param onEnd appelé avec le résultat quand le joueur quitte l'écran après la fin du combat
      * @param keys les touches du joueur
