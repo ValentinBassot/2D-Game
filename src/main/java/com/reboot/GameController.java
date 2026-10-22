@@ -23,6 +23,7 @@ import com.reboot.view.CombatView;
 import com.reboot.view.DiscoveredArea;
 import com.reboot.view.EndView;
 import com.reboot.view.ExplorationView;
+import com.reboot.view.HomeView;
 import com.reboot.view.Hud;
 import com.reboot.view.MainMenuView;
 import com.reboot.view.OptionsView;
@@ -98,6 +99,13 @@ public class GameController implements CombatLauncher {
         pause.start();
     }
 
+    private void showHomeStation() {
+        exploration.stop();
+        HomeView station = new HomeView(settings.getKeys(), game, this::showExploration);
+        screen.show(station);
+        station.start();
+    }
+
     private void showQuests() {
         QuestsView quests = new QuestsView(settings.getKeys(), game, this::showPause);
         screen.show(quests);
@@ -131,6 +139,9 @@ public class GameController implements CombatLauncher {
         exploration.setGuardian(() -> !guardianDefeated(), this::guardianOpen);
         exploration.setHud(new Hud(game), spec.name());
         showExploration();
+        if (zone == HOME) {
+            exploration.showMessage("Le poste de la Home gère ton équipe et répare tes robots");
+        }
     }
 
     private Player arrival(int from) {
@@ -167,6 +178,10 @@ public class GameController implements CombatLauncher {
 
     private void onBump(int x, int y) {
         Tile tile = map.tileAt(x, y);
+        if (tile == Tile.STATION && currentZone == HOME) {
+            showHomeStation();
+            return;
+        }
         if ((tile != Tile.CHIEF && tile != Tile.BOSS) || guardianDefeated()) {
             return;
         }
