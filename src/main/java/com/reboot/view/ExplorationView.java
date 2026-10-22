@@ -283,7 +283,7 @@ public class ExplorationView extends StackPane {
     private void drawMessage(GraphicsContext gc) {
         double width = 760;
         double x = (VIEW_WIDTH - width) / 2;
-        double y = 168;
+        double y = 186;
         gc.setFill(Color.rgb(10, 14, 28, 0.88));
         gc.fillRect(x, y, width, 44);
         gc.setStroke(Color.rgb(255, 200, 80));

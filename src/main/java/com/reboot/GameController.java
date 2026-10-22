@@ -27,6 +27,7 @@ import com.reboot.view.Hud;
 import com.reboot.view.MainMenuView;
 import com.reboot.view.OptionsView;
 import com.reboot.view.PauseView;
+import com.reboot.view.QuestsView;
 import com.reboot.view.ScaledScreen;
 import java.util.HashMap;
 import java.util.List;
@@ -91,10 +92,16 @@ public class GameController implements CombatLauncher {
 
     private void showPause() {
         exploration.stop();
-        PauseView pause = new PauseView(settings.getKeys(), this::showExploration,
+        PauseView pause = new PauseView(settings.getKeys(), this::showExploration, this::showQuests,
                 () -> showOptions(this::showPause), this::showMainMenu);
         screen.show(pause);
         pause.start();
+    }
+
+    private void showQuests() {
+        QuestsView quests = new QuestsView(settings.getKeys(), game, this::showPause);
+        screen.show(quests);
+        quests.start();
     }
 
     private void showOptions(Runnable back) {
