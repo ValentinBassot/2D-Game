@@ -21,11 +21,6 @@
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-fxml</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -53,6 +48,28 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <!-- Écrans JavaFX et lancement : ils ne font que dessiner et brancher les vues, on les vérifie en jouant.
+                         Toute la logique testable est dans model (et Camera, DiscoveredArea), qui reste mesurée. -->
+                    <excludes>
+                        <exclude>com/reboot/App*</exclude>
+                        <exclude>com/reboot/GameController*</exclude>
+                        <exclude>com/reboot/view/ChoiceView*</exclude>
+                        <exclude>com/reboot/view/CombatView*</exclude>
+                        <exclude>com/reboot/view/EndView*</exclude>
+                        <exclude>com/reboot/view/ExplorationView*</exclude>
+                        <exclude>com/reboot/view/HomeView*</exclude>
+                        <exclude>com/reboot/view/Hud*</exclude>
+                        <exclude>com/reboot/view/MainMenuView*</exclude>
+                        <exclude>com/reboot/view/MenuView*</exclude>
+                        <exclude>com/reboot/view/Minimap*</exclude>
+                        <exclude>com/reboot/view/OptionsView*</exclude>
+                        <exclude>com/reboot/view/PauseView*</exclude>
+                        <exclude>com/reboot/view/QuestsView*</exclude>
+                        <exclude>com/reboot/view/ScaledScreen*</exclude>
+                        <exclude>com/reboot/view/SpriteStore*</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals><goal>prepare-agent</goal></goals>
@@ -61,6 +78,30 @@
                         <id>report</id>
                         <phase>test</phase>
                         <goals><goal>report</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -78,6 +119,27 @@
                 </dependencies>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <doclint>all</doclint>
+                    <failOnWarnings>true</failOnWarnings>
+                    <show>protected</show>
+                    <additionalOptions>
+                        <additionalOption>-Xmaxwarns</additionalOption>
+                        <additionalOption>10000</additionalOption>
+                    </additionalOptions>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <charset>UTF-8</charset>
+                    <locale>fr</locale>
+                    <doctitle>Reboot ${project.version}</doctitle>
+                    <windowtitle>Reboot</windowtitle>
                 </configuration>
             </plugin>
 

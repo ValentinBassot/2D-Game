@@ -1,0 +1,12 @@
+TANK|A porté une grand-mère et ses courses jusqu'au dixième étage, un jour de panne d'ascenseur.
+TANK|A retenu le toit de l'école du quartier pendant l'orage, le temps que tous les enfants sortent.
+TANK|A servi de mur aux manifestants contre une voiture folle, place Bellecour.
+TANK|A déblayé la route de l'hôpital pendant toute une nuit de neige.
+HEALER|A soigné une petite fille au quartier résidentiel, après une chute à vélo.
+HEALER|A veillé un vieux monsieur seul chaque soir, jusqu'à ce qu'il se rétablisse.
+HEALER|A recousu la patte d'un chien errant, que les enfants ont ensuite adopté.
+HEALER|A distribué des médicaments dans les tours, porte après porte, pendant l'épidémie.
+INFIGHTER|A arrêté un voleur de sac à main en pleine course, sans jamais le blesser.
+INFIGHTER|A appris la boxe aux ados du gymnase, pour qu'ils restent loin des ennuis.
+INFIGHTER|A sorti un conducteur coincé dans sa voiture avant que le feu ne prenne.
+INFIGHTER|A protégé un marchand de primeurs pendant une émeute, sans lever le poing.

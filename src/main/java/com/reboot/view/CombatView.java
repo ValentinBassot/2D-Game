@@ -1,32 +1,39 @@
 package com.reboot.view;
 
-import com.reboot.model.Combat;
-import com.reboot.model.CombatOutcome;
-import com.reboot.model.Combattant;
-import com.reboot.model.Encounter;
-import com.reboot.model.EncounterResult;
-import com.reboot.model.Robot;
-import com.reboot.model.Skill;
+import com.reboot.model.combat.Combat;
+import com.reboot.model.combat.CombatOutcome;
+import com.reboot.model.combat.Encounter;
+import com.reboot.model.combat.EncounterResult;
+import com.reboot.model.combat.TurnResult;
+import com.reboot.model.fighter.Combattant;
+import com.reboot.model.fighter.Robot;
+import com.reboot.model.settings.Action;
+import com.reboot.model.settings.KeyBindings;
+import com.reboot.model.skill.Skill;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Consumer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * Écran de combat. On voit le robot du joueur de dos et l'ennemi de face, avec le journal des tours et le
+ * menu d'actions.
+ */
 public class CombatView extends StackPane {
 
     private static final int WIDTH = ExplorationView.VIEW_WIDTH;
     private static final int HEIGHT = ExplorationView.VIEW_HEIGHT;
     private static final double PANEL_TOP = 500;
+    private static final double MENU_X = 620;
     private static final double BAR_WIDTH = 260;
     private static final int LOG_LINES = 4;
+    private static final String SWITCH_LABEL = "Changer de robot";
 
     private static final Color BACKGROUND = Color.rgb(24, 28, 48);
     private static final Color FLOOR = Color.rgb(44, 52, 82);
@@ -34,16 +41,28 @@ public class CombatView extends StackPane {
     private static final Color TEXT = Color.rgb(235, 238, 250);
     private static final Color MUTED = Color.rgb(150, 158, 190);
     private static final Color HIGHLIGHT = Color.rgb(60, 180, 255);
+    private static final Color FIT = Color.LIMEGREEN;
+    private static final Color DOWN = Color.rgb(80, 86, 110);
 
     private final Encounter encounter;
     private final Combat combat;
     private final Consumer<EncounterResult> onEnd;
+    private final KeyBindings keys;
     private final SpriteStore sprites = new SpriteStore();
     private final Canvas canvas = new Canvas(WIDTH, HEIGHT);
     private final List<String> log = new ArrayList<>();
+    private boolean switching;
     private int selected;
 
-    public CombatView(Encounter encounter, Consumer<EncounterResult> onEnd) {
+    /**
+     * Crée l'écran de combat d'une rencontre.
+     *
+     * @param encounter la rencontre à jouer
+     * @param onEnd appelé avec le résultat quand le joueur quitte l'écran après la fin du combat
+     * @param keys les touches du joueur
+     */
+    public CombatView(Encounter encounter, Consumer<EncounterResult> onEnd, KeyBindings keys) {
+        this.keys = keys;
         this.encounter = encounter;
         this.combat = encounter.getCombat();
         this.onEnd = onEnd;
@@ -54,28 +73,31 @@ public class CombatView extends StackPane {
         log.add("Un " + combat.getEnemy().getName() + " détourné attaque !");
     }
 
+    /** Affiche l'écran et prend le focus du clavier. */
     public void start() {
         requestFocus();
         render();
     }
 
     private void onKeyPressed(KeyEvent event) {
-        List<Skill> skills = combat.getPlayer().getSkills();
+        Action action = keys.actionOf(event.getCode().name()).orElse(null);
         if (encounter.isFinished()) {
-            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
+            if (action == Action.CONFIRM) {
                 onEnd.accept(encounter.getResult());
             }
             return;
         }
+        int size = menuSize();
         int shortcut = shortcutOf(event);
-        if (shortcut >= 0 && shortcut < skills.size()) {
+        if (shortcut >= 0 && shortcut < size) {
             selected = shortcut;
-            play(skills.get(selected));
-        } else {
-            switch (event.getCode()) {
-                case Z, UP -> selected = (selected + skills.size() - 1) % skills.size();
-                case S, DOWN -> selected = (selected + 1) % skills.size();
-                case ENTER, SPACE -> play(skills.get(selected));
+            confirm();
+        } else if (action != null) {
+            switch (action) {
+                case MOVE_UP -> selected = (selected + size - 1) % size;
+                case MOVE_DOWN -> selected = (selected + 1) % size;
+                case CONFIRM -> confirm();
+                case PAUSE -> closeSwitchMenu();
                 default -> { }
             }
         }
@@ -87,21 +109,72 @@ public class CombatView extends StackPane {
             case DIGIT1, NUMPAD1, AMPERSAND -> 0;
             case DIGIT2, NUMPAD2 -> 1;
             case DIGIT3, NUMPAD3, QUOTEDBL -> 2;
+            case DIGIT4, NUMPAD4, QUOTE -> 3;
             default -> switch (event.getText()) {
                 case "1", "&" -> 0;
                 case "2", "é" -> 1;
                 case "3", "\"" -> 2;
+                case "4", "'" -> 3;
                 default -> -1;
             };
         };
     }
 
-    private void play(Skill skill) {
-        log.addAll(combat.useSkill(skill).log());
+    private List<String> menuItems() {
+        List<String> items = new ArrayList<>();
+        if (switching) {
+            for (Robot robot : combat.getSwitchOptions()) {
+                items.add(robot.getName() + "  Nv " + robot.getLevel() + "  " + robot.getHp() + "/" + robot.getMaxHp());
+            }
+        } else {
+            combat.getPlayer().getSkills().forEach(skill -> items.add(skill.getName()));
+            if (!combat.getSwitchOptions().isEmpty()) {
+                items.add(SWITCH_LABEL);
+            }
+        }
+        return items;
+    }
+
+    private int menuSize() {
+        return Math.max(1, menuItems().size());
+    }
+
+    private void confirm() {
+        if (switching) {
+            List<Robot> options = combat.getSwitchOptions();
+            if (selected < options.size()) {
+                record(combat.switchTo(options.get(selected)));
+                switching = false;
+                selected = 0;
+            }
+            return;
+        }
+        List<Skill> skills = combat.getPlayer().getSkills();
+        if (selected < skills.size()) {
+            record(combat.useSkill(skills.get(selected)));
+        } else {
+            switching = true;
+            selected = 0;
+        }
+    }
+
+    private void closeSwitchMenu() {
+        if (switching && !combat.mustSwitch()) {
+            switching = false;
+            selected = 0;
+        }
+    }
+
+    private void record(TurnResult result) {
+        log.addAll(result.log());
         if (encounter.isFinished()) {
             log.add(combat.getOutcome() == CombatOutcome.VICTORY
                     ? "Victoire ! Entrée pour continuer."
                     : "Défaite... Entrée pour rentrer à la Home.");
+        } else if (combat.mustSwitch()) {
+            switching = true;
+            selected = 0;
+            log.add("Choisis le robot qui prend le relais.");
         }
     }
 
@@ -115,10 +188,12 @@ public class CombatView extends StackPane {
 
         Combattant enemy = combat.getEnemy();
         Combattant ally = combat.getPlayer();
-        sprites.draw(gc, sprite(enemy, enemy.isKo() ? "ko" : "front_hostile_idle"), 624, 100, 192, Color.CRIMSON);
+        String enemyPose = enemy.isKo() ? "ko" : enemy.isReprogrammable() ? "front_hostile_idle" : "front_idle";
+        sprites.draw(gc, sprite(enemy, enemyPose), 624, 100, 192, Color.CRIMSON);
         sprites.draw(gc, sprite(ally, ally.isKo() ? "ko" : "back_idle"), 122, 230, 256, Color.DODGERBLUE);
         drawStatus(gc, enemy, 60, 60);
         drawStatus(gc, ally, 600, 380);
+        drawRoster(gc, 620, 482);
 
         gc.setFill(PANEL);
         gc.fillRect(0, PANEL_TOP, WIDTH, HEIGHT - PANEL_TOP);
@@ -129,11 +204,44 @@ public class CombatView extends StackPane {
             gc.fillText(log.get(i), 30, PANEL_TOP + 40 + (i - from) * 28);
         }
         if (!encounter.isFinished()) {
-            List<Skill> skills = ally.getSkills();
-            for (int i = 0; i < skills.size(); i++) {
-                gc.setFill(i == selected ? HIGHLIGHT : TEXT);
-                gc.fillText((i == selected ? "> " : "  ") + (i + 1) + "  " + skills.get(i).getName(),
-                        620, PANEL_TOP + 40 + i * 28);
+            drawMenu(gc);
+        }
+    }
+
+    private void drawMenu(GraphicsContext gc) {
+        List<String> items = menuItems();
+        if (switching) {
+            gc.setFill(MUTED);
+            gc.setFont(Font.font("Monospaced", 14));
+            gc.fillText(combat.mustSwitch() ? "Qui prend le relais ?" : "Changer coûte le tour · Échap : retour",
+                    MENU_X, PANEL_TOP + 18);
+        }
+        gc.setFont(Font.font("Monospaced", 18));
+        for (int i = 0; i < items.size(); i++) {
+            gc.setFill(i == selected ? HIGHLIGHT : TEXT);
+            gc.fillText((i == selected ? "> " : "  ") + (i + 1) + "  " + items.get(i),
+                    MENU_X, PANEL_TOP + 40 + i * 28);
+        }
+    }
+
+    private void drawRoster(GraphicsContext gc, double x, double y) {
+        List<Robot> roster = combat.getRoster();
+        if (roster.size() < 2) {
+            return;
+        }
+        gc.setFill(MUTED);
+        gc.setFont(Font.font("Monospaced", 14));
+        gc.fillText("Équipe", x, y + 4);
+        for (int i = 0; i < roster.size(); i++) {
+            Robot robot = roster.get(i);
+            boolean fit = robot.canFightForPlayer() && !robot.isKo();
+            double cx = x + 70 + i * 22;
+            gc.setFill(fit ? FIT : DOWN);
+            gc.fillOval(cx, y - 8, 14, 14);
+            if (robot == combat.getPlayer()) {
+                gc.setStroke(TEXT);
+                gc.setLineWidth(2);
+                gc.strokeOval(cx - 3, y - 11, 20, 20);
             }
         }
     }
@@ -155,9 +263,6 @@ public class CombatView extends StackPane {
     }
 
     private static String sprite(Combattant fighter, String pose) {
-        if (fighter instanceof Robot robot) {
-            return "robots/" + robot.getType().name().toLowerCase(Locale.ROOT) + "bot/battle/" + pose + ".png";
-        }
-        return "robots/exosquelette/battle/" + pose + ".png";
+        return "robots/" + fighter.getSpriteId() + "/battle/" + pose + ".png";
     }
 }
