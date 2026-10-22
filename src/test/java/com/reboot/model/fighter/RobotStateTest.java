@@ -81,4 +81,36 @@ class RobotStateTest {
         TankBot robot = brokenAlly();
         assertThrows(IllegalStateException.class, robot::reprogram);
     }
+
+    @Test
+    void onlyARepairingRobot_isUnderRepair() {
+        TankBot robot = new TankBot(1);
+        assertFalse(robot.isUnderRepair());
+        robot.reprogram();
+        assertFalse(robot.isUnderRepair());
+        robot.handleKnockOut();
+        assertTrue(robot.isUnderRepair());
+    }
+
+    @Test
+    void aRepairedRobot_comesBackWithFullHp() {
+        TankBot robot = new TankBot(1);
+        robot.reprogram();
+        robot.takeDamage(999);
+        robot.handleKnockOut();
+        robot.recordTeamVictory();
+        robot.recordTeamVictory();
+        assertEquals(0, robot.getHp());
+        robot.useRepairPart();
+        assertEquals(robot.getMaxHp(), robot.getHp());
+    }
+
+    @Test
+    void anAllyWinning_isNotHealed() {
+        TankBot robot = new TankBot(1);
+        robot.reprogram();
+        robot.takeDamage(10);
+        robot.recordTeamVictory();
+        assertEquals(50, robot.getHp());
+    }
 }

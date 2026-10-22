@@ -7,6 +7,7 @@ import com.reboot.model.world.TileMap;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Locale;
+import java.util.function.IntPredicate;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -29,7 +30,6 @@ public class ExplorationView extends StackPane {
 
     private static final double STEP_SECONDS = 0.16;
     private static final double WALK_FRAME_SECONDS = 0.16;
-    public static final int UNLOCKED_ZONE = 1;
 
     private final TileMap map;
     private final Player player;
@@ -48,6 +48,7 @@ public class ExplorationView extends StackPane {
     private long lastFrame;
     private boolean running;
     private StepListener stepListener;
+    private IntPredicate portalOpen = zone -> true;
 
     private final AnimationTimer loop = new AnimationTimer() {
         @Override
@@ -87,6 +88,10 @@ public class ExplorationView extends StackPane {
 
     public void setOnStep(StepListener listener) {
         this.stepListener = listener;
+    }
+
+    public void setPortalOpen(IntPredicate portalOpen) {
+        this.portalOpen = portalOpen;
     }
 
     public void start() {
@@ -185,11 +190,15 @@ public class ExplorationView extends StackPane {
         switch (tile) {
             case WALL -> sprites.draw(gc, tileSprite("wall"), px, py, CELL, Color.DARKSLATEGRAY);
             case STATION -> sprites.draw(gc, tileSprite("station"), px, py, CELL, Color.SEAGREEN);
-            case ENCOUNTER -> sprites.draw(gc, tileSprite("grass"), px, py, CELL, Color.FORESTGREEN);
+            case ENCOUNTER -> sprites.draw(gc, tileSprite(encounterName()), px, py, CELL, Color.FORESTGREEN);
             case PORTAL -> {
-                boolean on = map.portalZoneAt(x, y) <= UNLOCKED_ZONE;
+                boolean on = portalOpen.test(map.portalZoneAt(x, y));
                 sprites.draw(gc, on ? "tiles/portal_on.png" : "tiles/portal_off.png", px, py, CELL,
                         on ? Color.DEEPSKYBLUE : Color.MIDNIGHTBLUE);
+            }
+            case BOSS -> {
+                sprites.draw(gc, tileSprite(floorName()), px, py, CELL, Color.BURLYWOOD);
+                sprites.draw(gc, "robots/chef_nexus/map/idle_down.png", px, py, CELL, Color.CRIMSON);
             }
             default -> sprites.draw(gc, tileSprite(floorName()), px, py, CELL, Color.BURLYWOOD);
         }
@@ -197,6 +206,14 @@ public class ExplorationView extends StackPane {
 
     private String floorName() {
         return "home".equals(zonePrefix) ? "floor" : "ground";
+    }
+
+    private String encounterName() {
+        return switch (zonePrefix) {
+            case "z2" -> "hazard";
+            case "z3" -> "data";
+            default -> "grass";
+        };
     }
 
     private String tileSprite(String name) {

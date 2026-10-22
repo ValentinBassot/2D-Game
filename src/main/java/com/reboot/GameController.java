@@ -4,16 +4,17 @@ import com.reboot.model.combat.CombatLauncher;
 import com.reboot.model.combat.CombatOutcome;
 import com.reboot.model.combat.Encounter;
 import com.reboot.model.combat.EncounterResult;
+import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
+import com.reboot.model.game.Game;
 import com.reboot.model.fighter.HealerBot;
-import com.reboot.model.fighter.InfighterBot;
-import com.reboot.model.fighter.Robot;
 import com.reboot.model.world.EncounterTrigger;
 import com.reboot.model.world.Player;
 import com.reboot.model.world.Tile;
 import com.reboot.model.world.TileMap;
 import com.reboot.view.CombatView;
 import com.reboot.view.DiscoveredArea;
+import com.reboot.view.EndView;
 import com.reboot.view.ExplorationView;
 import com.reboot.view.ScaledScreen;
 import java.util.HashMap;
@@ -24,20 +25,21 @@ public class GameController implements CombatLauncher {
 
     private static final int HOME = 0;
     private static final int ENCOUNTER_ONE_IN = 6;
-    private static final int STARTER_LEVEL = 2;
 
     private record ZoneSpec(String mapPath, String spritePrefix, int level) {
     }
 
     private static final Map<Integer, ZoneSpec> ZONES = Map.of(
             HOME, new ZoneSpec("/com/reboot/maps/home.txt", "home", 0),
-            1, new ZoneSpec("/com/reboot/maps/zone1.txt", "z1", 2));
+            1, new ZoneSpec("/com/reboot/maps/zone1.txt", "z1", 2),
+            3, new ZoneSpec("/com/reboot/maps/zone3.txt", "z3", 8));
 
     private final ScaledScreen screen;
-    private final Robot partner = new InfighterBot(STARTER_LEVEL);
     private final EncounterTrigger encounters = new EncounterTrigger(new Random(), ENCOUNTER_ONE_IN);
 
     private final Map<Integer, DiscoveredArea> discovered = new HashMap<>();
+
+    private Game game = Game.newGame();
 
     private int currentZone = HOME;
     private TileMap map;
@@ -59,12 +61,13 @@ public class GameController implements CombatLauncher {
         currentZone = zone;
         map = TileMap.load(spec.mapPath());
         if (zone == HOME) {
-            partner.heal(partner.getMaxHp());
+            game.getTeam().healAll();
         }
         DiscoveredArea seen = discovered.computeIfAbsent(zone,
                 key -> new DiscoveredArea(map.getWidth(), map.getHeight()));
         exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen);
         exploration.setOnStep(this::onStep);
+        exploration.setPortalOpen(ZONES::containsKey);
         showExploration();
     }
 
@@ -89,8 +92,10 @@ public class GameController implements CombatLauncher {
     private void onStep(int x, int y) {
         Tile tile = map.tileAt(x, y);
         int target = map.portalZoneAt(x, y);
-        if (tile == Tile.PORTAL && target <= ExplorationView.UNLOCKED_ZONE && ZONES.containsKey(target)) {
+        if (tile == Tile.PORTAL && ZONES.containsKey(target)) {
             enterZone(target, currentZone);
+        } else if (tile == Tile.BOSS) {
+            launch(new Boss());
         } else if (encounters.shouldTrigger(tile)) {
             launch(new HealerBot(ZONES.get(currentZone).level()));
         }
@@ -99,16 +104,31 @@ public class GameController implements CombatLauncher {
     @Override
     public void launch(Combattant enemy) {
         exploration.stop();
-        CombatView combat = new CombatView(new Encounter(partner, enemy), this::onCombatEnd);
+        CombatView combat = new CombatView(new Encounter(game.getTeam().getActive(), enemy), this::onCombatEnd);
         screen.show(combat);
         combat.start();
     }
 
     private void onCombatEnd(EncounterResult result) {
-        if (result.outcome() == CombatOutcome.DEFEAT) {
+        game.onCombatEnd(result);
+        if (game.isOver()) {
+            showEnd();
+        } else if (result.outcome() == CombatOutcome.DEFEAT) {
             enterZone(HOME, HOME);
         } else {
             showExploration();
         }
+    }
+
+    private void showEnd() {
+        EndView end = new EndView(game.getStatus(), game.getTeam(), this::restart);
+        screen.show(end);
+        end.start();
+    }
+
+    private void restart() {
+        game = Game.newGame();
+        discovered.clear();
+        enterZone(HOME, HOME);
     }
 }
