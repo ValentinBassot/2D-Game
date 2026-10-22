@@ -13,6 +13,7 @@ import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Exosquelette;
 import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.InfighterBot;
+import com.reboot.model.fighter.RepairingState;
 import com.reboot.model.fighter.Robot;
 import com.reboot.model.fighter.TankBot;
 import com.reboot.model.team.Team;
@@ -78,6 +79,21 @@ class GameTest {
     }
 
     @Test
+    void aRobotStoredAtTheHome_preventsTheGameOver_andJoinsAtTheHome() {
+        Game game = Game.newGame();
+        Robot starter = game.getTeam().getActive();
+        HealerBot stored = new HealerBot(2);
+        stored.reprogram();
+        game.getHome().store(stored);
+
+        game.onCombatEnd(defeatOf(starter));
+        assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
+
+        game.restAtHome();
+        assertEquals(stored, game.getTeam().getActive());
+    }
+
+    @Test
     void victories_repairTheFallenRobots() {
         InfighterBot starter = new InfighterBot(2);
         starter.reprogram();
@@ -94,6 +110,21 @@ class GameTest {
 
         assertFalse(starter.isUnderRepair());
         assertEquals(starter, team.getActive());
+    }
+
+    @Test
+    void aRobotKnockedOutDuringAWonFight_alsoGoesToRepair() {
+        Game game = Game.newGame();
+        Robot starter = game.getTeam().getActive();
+        TankBot backup = new TankBot(2);
+        backup.reprogram();
+        game.getTeam().add(backup);
+        starter.takeDamage(999);
+
+        game.onCombatEnd(victoryAgainst(new HealerBot(2)));
+
+        RepairingState state = assertInstanceOf(RepairingState.class, starter.getState());
+        assertEquals(RepairingState.VICTORIES_TO_REPAIR, state.getVictoriesLeft());
     }
 
     @Test

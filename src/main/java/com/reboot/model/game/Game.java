@@ -42,6 +42,8 @@ public class Game {
         }
         if (result.outcome() == CombatOutcome.VICTORY) {
             team.recordVictory();
+            home.recordVictory();
+            team.sendKnockedOutToRepair();
             if (result.enemy().endsTheGame()) {
                 status = GameStatus.WON;
             } else if (!result.enemy().isReprogrammable()) {
@@ -49,10 +51,19 @@ public class Game {
             }
         } else {
             team.sendKnockedOutToRepair();
-            if (team.isAllUnderRepair()) {
+            if (team.isAllUnderRepair() && home.hasNoFighter()) {
                 status = GameStatus.LOST;
             }
         }
+    }
+
+    /**
+     * Le joueur rentre à la Home : les robots rangés remplacent ceux en réparation,
+     * puis l'équipe est soignée.
+     */
+    public void restAtHome() {
+        home.fillTeam(team);
+        team.healAll();
     }
 
     public boolean isOver() {
