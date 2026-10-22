@@ -298,4 +298,31 @@ class CombatTest {
         }
         assertEquals(0, enemy.getXp());
     }
+
+    private static class Unarmed extends Combattant {
+        Unarmed() {
+            super("Sans arme", 1, 30, 10, 0, 1);
+        }
+
+        @Override
+        public boolean isReprogrammable() {
+            return false;
+        }
+
+        @Override
+        public String getSpriteId() {
+            return "unarmed";
+        }
+    }
+
+    @Test
+    void anEnemyWithoutSkill_fallsBackOnStrike() {
+        TurnResult result = new Combat(new TankBot(1), new Unarmed()).useSkill(TankBot.CRUSH);
+        assertTrue(result.log().get(1).startsWith("Sans arme utilise Frappe"));
+    }
+
+    @Test
+    void aSoloCombat_hasAnEmptyRoster() {
+        assertTrue(new Combat(new TankBot(1), new HealerBot(1)).getRoster().isEmpty());
+    }
 }

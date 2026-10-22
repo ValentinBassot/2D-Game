@@ -59,4 +59,9 @@ class WantedBarTest {
         assertEquals(WantedTier.PUBLIC_ENEMY, WantedTier.of(75));
         assertEquals("Ennemi public", WantedTier.PUBLIC_ENEMY.getLabel());
     }
+
+    @Test
+    void tiers_exposeTheirThreshold() {
+        assertEquals(75, WantedTier.PUBLIC_ENEMY.getThreshold());
+    }
 }

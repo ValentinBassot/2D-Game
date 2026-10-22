@@ -71,4 +71,13 @@ class CampaignTest {
         context.boss = true;
         assertTrue(campaign.current(context).isEmpty());
     }
+
+    @Test
+    void theCampaign_hasThreeChapters_endingWithTheirGuardian() {
+        assertEquals(3, campaign.getChapters().size());
+        for (QuestGroup chapter : campaign.getChapters()) {
+            Quest last = chapter.getQuests().get(chapter.getQuests().size() - 1);
+            assertTrue(last instanceof ChiefQuest || last instanceof BossQuest, chapter.getDescription());
+        }
+    }
 }

@@ -36,4 +36,10 @@ class HealSkillTest {
     void nonPositiveAmount_isRejected() {
         assertThrows(IllegalArgumentException.class, () -> new HealSkill("Bug", 0));
     }
+
+    @Test
+    void networkPatch_keepsItsSettings() {
+        assertEquals("Patch réseau", HealerBot.NETWORK_PATCH.getName());
+        assertEquals(15, HealerBot.NETWORK_PATCH.getAmount());
+    }
 }

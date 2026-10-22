@@ -134,4 +134,10 @@ class CombattantTest {
         Combattant c = new TestFighter(1);
         assertThrows(IllegalArgumentException.class, () -> c.takeDamage(-5));
     }
+
+    @Test
+    void negativeHeal_isRejected() {
+        Combattant c = new TestFighter(1);
+        assertThrows(IllegalArgumentException.class, () -> c.heal(-5));
+    }
 }

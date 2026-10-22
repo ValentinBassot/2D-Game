@@ -208,4 +208,24 @@ class GameTest {
         game.onCombatEnd(victoryAgainst(new Boss()));
         assertThrows(IllegalStateException.class, () -> game.onCombatEnd(victoryAgainst(new HealerBot(1))));
     }
+
+    @Test
+    void theGameExposesItsCampaignAndItsZone() {
+        Game game = Game.newGame();
+        game.enterZone(Campaign.INDUSTRIAL);
+        assertEquals(Campaign.INDUSTRIAL, game.getCurrentZone());
+        assertEquals(3, game.getCampaign().getChapters().size());
+    }
+
+    @Test
+    void theChiefAndTheBoss_openOnceTheirQuestsAreDone() {
+        Game game = Game.newGame();
+        assertFalse(game.canChallengeBoss());
+        game.enterZone(Campaign.DATA_CENTER);
+        game.onCombatEnd(victoryAgainst(new HealerBot(8)));
+        assertTrue(game.canChallengeBoss());
+        assertFalse(game.isBossDefeated());
+        game.onCombatEnd(victoryAgainst(new Boss()));
+        assertTrue(game.isBossDefeated());
+    }
 }

@@ -62,4 +62,10 @@ class KeyBindingsTest {
     void anEmptyKey_isRejected() {
         assertThrows(IllegalArgumentException.class, () -> bindings.bind(Action.PAUSE, " "));
     }
+
+    @Test
+    void everyAction_hasALabelForTheOptions() {
+        assertEquals("Haut", Action.MOVE_UP.getLabel());
+        assertEquals("Pause / retour", Action.PAUSE.getLabel());
+    }
 }

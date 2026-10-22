@@ -25,4 +25,11 @@ class DefenseBoostSkillTest {
         assertThrows(IllegalArgumentException.class, () -> new DefenseBoostSkill("Bug", 1, 2));
         assertThrows(IllegalArgumentException.class, () -> new DefenseBoostSkill("Bug", 2, 0));
     }
+
+    @Test
+    void armor_keepsItsSettings() {
+        assertEquals("Blindage", TankBot.ARMOR.getName());
+        assertEquals(2, TankBot.ARMOR.getMultiplier());
+        assertEquals(2, TankBot.ARMOR.getTurns());
+    }
 }
