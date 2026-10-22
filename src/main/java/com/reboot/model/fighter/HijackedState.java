@@ -1,6 +1,11 @@
 package com.reboot.model.fighter;
 
+/** État d'un robot piraté par NEXUS. Il se bat contre le joueur, qui peut le reprogrammer. */
 public class HijackedState implements RobotState {
+
+    /** Crée l'état d'un robot détourné par NEXUS. */
+    public HijackedState() {
+    }
 
     @Override
     public boolean canFightForPlayer() {

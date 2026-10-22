@@ -8,6 +8,8 @@ public class WinsQuest implements Quest {
     private final int target;
 
     /**
+     * Crée la quête de victoires dans une zone.
+     *
      * @param zone le numéro de la zone
      * @param zoneName le nom de la zone, avec son article (« le Quartier résidentiel »)
      * @param target le nombre de victoires à atteindre

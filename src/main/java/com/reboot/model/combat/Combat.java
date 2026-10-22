@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Un combat au tour par tour entre le robot actif du joueur et un ennemi.
+ * Combat au tour par tour entre le robot actif du joueur et un ennemi.
  *
- * <p>Quand le joueur se bat avec une équipe, il peut changer de robot : le changement coûte
- * le tour, sauf si le robot actif vient d'être mis K.O. Le combat est perdu quand plus aucun
- * robot de l'équipe ne peut se battre. Le robot qui met l'ennemi K.O. gagne l'XP de la victoire.
+ * <p>En équipe, on peut changer de robot. Ça coûte le tour, sauf si le robot actif vient de tomber K.O. Le
+ * combat est perdu quand plus personne dans l'équipe ne peut se battre. L'XP va au robot qui met l'ennemi
+ * K.O.
  */
 public class Combat {
 
@@ -22,7 +22,7 @@ public class Combat {
     private int turn;
 
     /**
-     * Un combat en solo, sans changement de robot possible.
+     * Combat en solo. Pas de changement de robot dans ce cas.
      *
      * @param player le combattant du joueur
      * @param enemy l'ennemi
@@ -32,7 +32,7 @@ public class Combat {
     }
 
     /**
-     * Un combat en équipe : le premier robot disponible commence.
+     * Combat en équipe. Le premier robot disponible commence.
      *
      * @param team l'équipe du joueur
      * @param enemy l'ennemi
@@ -48,7 +48,7 @@ public class Combat {
     }
 
     /**
-     * Joue un tour : le robot actif utilise une compétence, l'ennemi répond.
+     * Joue un tour. Le robot actif lance une compétence et l'ennemi répond.
      *
      * @param skill une compétence du robot actif
      * @return le journal du tour
@@ -81,9 +81,8 @@ public class Combat {
     }
 
     /**
-     * Envoie un autre robot de l'équipe au combat. Si le robot actif est encore debout,
-     * le changement coûte le tour et l'ennemi attaque le nouveau venu ; s'il est K.O.,
-     * le remplacement est gratuit.
+     * Fait entrer un autre robot de l'équipe. Si le robot actif est encore debout, le changement coûte le
+     * tour et l'ennemi frappe le nouveau venu. S'il est K.O., le remplacement est gratuit.
      *
      * @param next un robot de {@link #getSwitchOptions()}
      * @return le journal du tour
@@ -108,14 +107,14 @@ public class Combat {
         return new TurnResult(log, isOver());
     }
 
-    /** @return les robots de l'équipe qui peuvent remplacer le robot actif */
+    /** {@return les robots de l'équipe qui peuvent remplacer le robot actif} */
     public List<Robot> getSwitchOptions() {
         return roster.stream()
                 .filter(robot -> robot != active && robot.canFightForPlayer() && !robot.isKo())
                 .toList();
     }
 
-    /** @return {@code true} si le robot actif est K.O. et qu'il faut choisir son remplaçant */
+    /** {@return {@code true} si le robot actif est K.O. et qu'il faut lui trouver un remplaçant} */
     public boolean mustSwitch() {
         return active.isKo() && !enemy.isKo() && !getSwitchOptions().isEmpty();
     }
@@ -156,12 +155,12 @@ public class Combat {
         }
     }
 
-    /** @return {@code true} si l'ennemi est K.O. ou si plus aucun robot du joueur ne peut se battre */
+    /** {@return {@code true} si l'ennemi est K.O. ou si le joueur n'a plus aucun robot en état} */
     public boolean isOver() {
         return enemy.isKo() || (active.isKo() && getSwitchOptions().isEmpty());
     }
 
-    /** @return la victoire si l'ennemi est K.O., la défaite sinon */
+    /** {@return la victoire si l'ennemi est K.O., la défaite sinon} */
     public CombatOutcome getOutcome() {
         if (!isOver()) {
             throw new IllegalStateException("The combat is not over yet");
@@ -169,15 +168,15 @@ public class Combat {
         return enemy.isKo() ? CombatOutcome.VICTORY : CombatOutcome.DEFEAT;
     }
 
-    /** @return tous les robots de l'équipe, vide pour un combat en solo */
+    /** {@return tous les robots de l'équipe, vide pour un combat en solo} */
     public List<Robot> getRoster() { return roster; }
 
-    /** @return le nombre de tours joués */
+    /** {@return le nombre de tours joués} */
     public int getTurn() { return turn; }
 
-    /** @return le combattant actif du joueur */
+    /** {@return le combattant actif du joueur} */
     public Combattant getPlayer() { return active; }
 
-    /** @return l'ennemi */
+    /** {@return l'ennemi} */
     public Combattant getEnemy() { return enemy; }
 }

@@ -5,11 +5,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Les touches du joueur. Chaque action a une touche principale, réassignable dans les options ;
- * les flèches, Espace et Échap restent des touches de secours qui marchent toujours.
+ * Touches du joueur. Chaque action a une touche principale qu'on peut changer dans les options, et les
+ * flèches, Espace et Échap marchent toujours en secours.
  *
- * <p>Les touches sont des noms (ceux de {@code javafx.scene.input.KeyCode}, comme {@code "Z"}
- * ou {@code "UP"}) : le modèle ne dépend pas de JavaFX et se teste sans interface.
+ * <p>On stocke les touches par leur nom ({@code "Z"}, {@code "UP"}, comme dans {@code
+ * javafx.scene.input.KeyCode}). Comme ça le modèle ne dépend pas de JavaFX et se teste facilement.
  */
 public class KeyBindings {
 
@@ -31,17 +31,21 @@ public class KeyBindings {
 
     private final Map<Action, String> keys = new EnumMap<>(DEFAULTS);
 
+    /** Crée les touches par défaut (ZQSD, Entrée et Échap). */
+    public KeyBindings() {
+    }
+
     /**
+     * {@return la touche principale de cette action}
+     *
      * @param action une action
-     * @return la touche principale de cette action
      */
     public String keyOf(Action action) {
         return keys.get(action);
     }
 
     /**
-     * Trouve l'action déclenchée par une touche : les touches principales passent avant
-     * les touches de secours.
+     * Cherche l'action liée à une touche. Les touches principales sont prioritaires sur celles de secours.
      *
      * @param key le nom de la touche pressée
      * @return l'action liée, ou rien si la touche n'est liée à aucune action
@@ -56,8 +60,8 @@ public class KeyBindings {
     }
 
     /**
-     * Lie une action à une nouvelle touche. Si la touche servait déjà à une autre action,
-     * les deux actions échangent leurs touches : aucune action ne reste sans touche.
+     * Associe une nouvelle touche à une action. Si la touche était déjà prise, les deux actions échangent
+     * leurs touches pour qu'aucune ne se retrouve sans touche.
      *
      * @param action l'action à modifier
      * @param key le nom de la nouvelle touche

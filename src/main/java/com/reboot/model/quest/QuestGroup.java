@@ -3,11 +3,11 @@ package com.reboot.model.quest;
 import java.util.List;
 
 /**
- * Un chapitre : un groupe de quêtes, qui est lui-même une quête (pattern Composite).
- * Il est terminé quand toutes ses quêtes le sont, et sa progression compte les quêtes terminées.
+ * Un chapitre regroupe plusieurs quêtes et c'est lui-même une quête (pattern Composite). Il est fini quand
+ * toutes ses quêtes le sont.
  *
- * <p>Par convention, la dernière quête d'un chapitre est le combat contre son gardien
- * (chef de zone ou boss) : il ne s'ouvre qu'une fois les autres quêtes remplies.
+ * <p>On a pris une convention simple, la dernière quête est toujours le combat contre le gardien (chef de
+ * zone ou boss), et il ne s'ouvre qu'une fois les autres quêtes faites.
  */
 public class QuestGroup implements Quest {
 
@@ -15,6 +15,8 @@ public class QuestGroup implements Quest {
     private final List<Quest> quests;
 
     /**
+     * Crée un chapitre à partir de ses quêtes.
+     *
      * @param title le titre du chapitre
      * @param quests ses quêtes, le combat contre le gardien en dernier
      */
@@ -42,14 +44,15 @@ public class QuestGroup implements Quest {
     }
 
     /**
+     * {@return {@code true} si toutes les quêtes sont faites, à part le combat contre le gardien}
+     *
      * @param context la partie en cours
-     * @return {@code true} si toutes les quêtes sauf le combat contre le gardien sont remplies
      */
     public boolean isGuardianOpen(QuestContext context) {
         return quests.subList(0, quests.size() - 1).stream().allMatch(quest -> quest.isDone(context));
     }
 
-    /** @return les quêtes du chapitre, dans l'ordre */
+    /** {@return les quêtes du chapitre, dans l'ordre} */
     public List<Quest> getQuests() {
         return quests;
     }

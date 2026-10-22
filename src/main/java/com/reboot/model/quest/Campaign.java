@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * La progression de Reboot : trois chapitres, un par zone de combat.
+ * Progression du jeu en trois chapitres, un par zone de combat.
  *
- * <p>Les seuils viennent d'une simulation de l'économie du jeu : avec ces valeurs, mélanger
- * « achever » et « reprogrammer » termine le quartier en 12 victoires environ, contre 31 en
- * reprogrammant toujours ; en achevant toujours, l'équipe ne dépasse jamais un robot.
+ * <p>On a choisi les seuils avec une simulation de l'économie du jeu. Avec ces valeurs, un joueur qui
+ * alterne achever et reprogrammer finit le quartier en 12 victoires environ, contre 31 s'il reprogramme
+ * tout. S'il achève tout, il reste avec un seul robot.
  */
 public final class Campaign {
 
@@ -21,7 +21,9 @@ public final class Campaign {
     /** Le data center de NEXUS. */
     public static final int DATA_CENTER = 3;
 
-    /** Sous cette valeur de la barre de recherche, on entre au data center par l'entrée discrète. */
+    /**
+     * En dessous de cette valeur de la barre de recherche, on passe par l'entrée discrète du data center.
+     */
     public static final int DISCREET_ENTRY_LIMIT = 75;
     /** Les gardes à vaincre par l'entrée discrète. */
     public static final int DISCREET_GUARDS = 1;
@@ -50,6 +52,10 @@ public final class Campaign {
                     new GuardsQuest(DATA_CENTER),
                     new BossQuest())));
 
+    /** Crée la campagne et ses trois chapitres. */
+    public Campaign() {
+    }
+
     /**
      * Le nombre de gardes du data center, fixé par la barre de recherche à l'entrée.
      *
@@ -60,40 +66,44 @@ public final class Campaign {
         return wanted < DISCREET_ENTRY_LIMIT ? DISCREET_GUARDS : MAIN_GUARDS;
     }
 
-    /** @return les chapitres, dans l'ordre */
+    /** {@return les chapitres, dans l'ordre} */
     public List<QuestGroup> getChapters() {
         return chapters;
     }
 
     /**
+     * {@return {@code true} si le portail de cette zone est allumé}
+     *
      * @param zone le numéro d'une zone
      * @param context la partie en cours
-     * @return {@code true} si le portail de cette zone est allumé
      */
     public boolean isUnlocked(int zone, QuestContext context) {
         return zone <= RESIDENTIAL || chapters.get(zone - INDUSTRIAL).isDone(context);
     }
 
     /**
+     * {@return {@code true} si le chef de cette zone accepte le combat}
+     *
      * @param zone le quartier ou la zone industrielle
      * @param context la partie en cours
-     * @return {@code true} si le chef de cette zone accepte le combat
      */
     public boolean canChallengeChief(int zone, QuestContext context) {
         return chapters.get(zone - RESIDENTIAL).isGuardianOpen(context);
     }
 
     /**
+     * {@return {@code true} si le chef de NEXUS accepte le combat}
+     *
      * @param context la partie en cours
-     * @return {@code true} si le chef de NEXUS accepte le combat
      */
     public boolean canChallengeBoss(QuestContext context) {
         return chapters.get(DATA_CENTER - RESIDENTIAL).isGuardianOpen(context);
     }
 
     /**
+     * {@return le premier chapitre qui n'est pas terminé, ou rien si la campagne est finie}
+     *
      * @param context la partie en cours
-     * @return le premier chapitre qui n'est pas terminé, ou rien si la campagne est finie
      */
     public Optional<QuestGroup> current(QuestContext context) {
         return chapters.stream().filter(chapter -> !chapter.isDone(context)).findFirst();

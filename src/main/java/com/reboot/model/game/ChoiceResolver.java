@@ -8,16 +8,18 @@ import com.reboot.model.team.PartsStock;
 import java.util.List;
 
 /**
- * Applique le choix du joueur après une victoire contre un robot : le reprogrammer ou l'achever.
+ * Applique le choix du joueur après une victoire contre un robot, reprogrammer ou achever.
  *
- * <p>Le résolveur ne modifie ni la barre de recherche, ni le réseau, ni les pièces : il publie
- * un événement, et ce sont les abonnés du bus qui réagissent (pattern Observer).
+ * <p>Cette classe ne touche pas directement à la barre de recherche, au réseau ou aux pièces. Elle publie
+ * un événement et ce sont les abonnés du bus qui réagissent (pattern Observer).
  */
 public class ChoiceResolver {
 
     private final Game game;
 
     /**
+     * Crée le résolveur du choix pour une partie.
+     *
      * @param game la partie dont l'équipe, la Home et le bus d'événements sont utilisés
      */
     public ChoiceResolver(Game game) {
@@ -54,9 +56,9 @@ public class ChoiceResolver {
     }
 
     /**
-     * Reprogramme le robot : il redevient bienveillant, est remis en état et rejoint l'équipe.
-     * Si l'équipe est pleine, il remplace le robot le plus faible quand il est plus fort que lui
-     * (le remplacé part à la Home), sinon il part lui-même à la Home.
+     * Reprogramme le robot. Il redevient gentil, récupère ses PV et rejoint l'équipe. Si l'équipe est
+     * pleine et qu'il est plus fort que le plus faible, il prend sa place et l'autre part à la Home. Sinon
+     * c'est lui qui va à la Home.
      *
      * @param robot le robot vaincu, encore détourné
      * @return les conséquences à afficher
@@ -86,7 +88,7 @@ public class ChoiceResolver {
     }
 
     /**
-     * Achève le robot : il est détruit, le joueur récupère des pièces et NEXUS s'en souvient.
+     * Achève le robot. Il est détruit, le joueur récupère des pièces et NEXUS garde la trace de sa défaite.
      *
      * @param robot le robot vaincu, encore détourné
      * @return les conséquences à afficher

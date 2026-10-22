@@ -5,7 +5,11 @@ public class ChiefQuest implements Quest {
 
     private final int zone;
 
-    /** @param zone le numéro de la zone gardée */
+    /**
+     * Crée la quête qui demande de vaincre le chef d'une zone.
+     *
+     * @param zone le numéro de la zone gardée
+     */
     public ChiefQuest(int zone) {
         this.zone = zone;
     }

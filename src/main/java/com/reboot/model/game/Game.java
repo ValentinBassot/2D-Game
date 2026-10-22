@@ -18,11 +18,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Une partie : l'équipe, la Home, les conséquences des choix et la progression dans les zones.
- * Elle sert de contexte aux quêtes de la {@link Campaign}.
+ * Une partie en cours, avec l'équipe, la Home, les conséquences des choix et l'avancée dans les zones. Les
+ * quêtes de la {@link Campaign} lisent leur progression ici.
  */
 public class Game implements QuestContext {
 
+    /** Le niveau du robot de départ de Léon. */
     public static final int STARTER_LEVEL = 2;
 
     private final Team team;
@@ -38,6 +39,11 @@ public class Game implements QuestContext {
     private int currentZone = Campaign.HOME;
     private int guardsRequired;
 
+    /**
+     * Crée une partie avec une équipe, et abonne les conséquences au bus d'événements.
+     *
+     * @param team l'équipe du joueur
+     */
     public Game(Team team) {
         this.team = team;
         events.subscribe(wantedBar);
@@ -45,12 +51,20 @@ public class Game implements QuestContext {
         events.subscribe(parts);
     }
 
+    /** {@return une nouvelle partie, avec l'InfighterBot réparé par Léon comme seul robot} */
     public static Game newGame() {
         InfighterBot starter = new InfighterBot(STARTER_LEVEL);
         starter.reprogram();
         return new Game(new Team(starter));
     }
 
+    /**
+     * Met à jour la partie après un combat. On compte la victoire dans la zone, on avance les réparations,
+     * on envoie les robots K.O. en réparation et on regarde si la partie est finie.
+     *
+     * @param result le résultat de la rencontre
+     * @throws IllegalStateException si la partie est déjà finie
+     */
     public void onCombatEnd(EncounterResult result) {
         if (isOver()) {
             throw new IllegalStateException("The game is already over");
@@ -75,8 +89,8 @@ public class Game implements QuestContext {
     }
 
     /**
-     * Le joueur entre dans une zone : ses victoires y seront comptées. En entrant pour la première
-     * fois au data center, la barre de recherche fixe le nombre de gardes à vaincre.
+     * À appeler quand le joueur entre dans une zone, pour y compter ses victoires. La première entrée au
+     * data center fixe aussi le nombre de gardes, selon la barre de recherche.
      *
      * @param zone le numéro de la zone
      */
@@ -88,22 +102,24 @@ public class Game implements QuestContext {
     }
 
     /**
+     * {@return {@code true} si son portail est allumé}
+     *
      * @param zone le numéro d'une zone
-     * @return {@code true} si son portail est allumé
      */
     public boolean isZoneUnlocked(int zone) {
         return campaign.isUnlocked(zone, this);
     }
 
     /**
+     * {@return {@code true} si son chef accepte le combat}
+     *
      * @param zone le quartier ou la zone industrielle
-     * @return {@code true} si son chef accepte le combat
      */
     public boolean canChallengeChief(int zone) {
         return !isChiefDefeated(zone) && campaign.canChallengeChief(zone, this);
     }
 
-    /** @return {@code true} si le chef de NEXUS accepte le combat */
+    /** {@return {@code true} si le chef de NEXUS accepte le combat} */
     public boolean canChallengeBoss() {
         return campaign.canChallengeBoss(this);
     }
@@ -139,25 +155,35 @@ public class Game implements QuestContext {
     }
 
     /**
-     * Le joueur rentre à la Home : les robots rangés remplacent ceux en réparation,
-     * puis l'équipe est soignée.
+     * Retour à la Home. Les robots rangés remplacent ceux qui sont en réparation, puis toute l'équipe est
+     * soignée.
      */
     public void restAtHome() {
         home.fillTeam(team);
         team.healAll();
     }
 
+    /** {@return {@code true} si la partie est gagnée ou perdue} */
     public boolean isOver() {
         return status != GameStatus.IN_PROGRESS;
     }
 
+    /** {@return l'équipe du joueur} */
     public Team getTeam() { return team; }
+    /** {@return la campagne et ses quêtes} */
     public Campaign getCampaign() { return campaign; }
+    /** {@return la zone où se trouve le joueur} */
     public int getCurrentZone() { return currentZone; }
+    /** {@return la Home et ses robots rangés} */
     public Home getHome() { return home; }
+    /** {@return le bus des événements du jeu} */
     public EventBus getEvents() { return events; }
+    /** {@return la barre de recherche} */
     public WantedBar getWantedBar() { return wantedBar; }
+    /** {@return le réseau du data center} */
     public DataCenter getDataCenter() { return dataCenter; }
+    /** {@return le stock de pièces} */
     public PartsStock getParts() { return parts; }
+    /** {@return l'état de la partie} */
     public GameStatus getStatus() { return status; }
 }

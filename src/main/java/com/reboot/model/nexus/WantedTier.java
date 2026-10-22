@@ -2,13 +2,13 @@ package com.reboot.model.nexus;
 
 /** Les paliers de la barre de recherche, du plus discret au plus traqué. */
 public enum WantedTier {
-    /** De 0 à 24 : NEXUS ignore le joueur. */
+    /** De 0 à 24, NEXUS ignore le joueur. */
     UNKNOWN("Inconnu", 0),
-    /** De 25 à 49 : le joueur est repéré. */
+    /** De 25 à 49, le joueur est repéré. */
     SPOTTED("Repéré", 25),
-    /** De 50 à 74 : le joueur est traqué. */
+    /** De 50 à 74, le joueur est traqué. */
     HUNTED("Traqué", 50),
-    /** De 75 à 100 : le joueur est l'ennemi public numéro un. */
+    /** De 75 à 100, le joueur devient l'ennemi public numéro un. */
     PUBLIC_ENEMY("Ennemi public", 75);
 
     private final String label;
@@ -35,9 +35,9 @@ public enum WantedTier {
         return reached;
     }
 
-    /** @return le nom du palier, affiché au joueur */
+    /** {@return le nom du palier, affiché au joueur} */
     public String getLabel() { return label; }
 
-    /** @return la valeur minimale du palier */
+    /** {@return la valeur minimale du palier} */
     public int getThreshold() { return threshold; }
 }
