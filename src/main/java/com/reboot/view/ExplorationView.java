@@ -9,13 +9,18 @@ import com.reboot.model.world.TileMap;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Locale;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntPredicate;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 public class ExplorationView extends StackPane {
 
@@ -31,6 +36,7 @@ public class ExplorationView extends StackPane {
 
     private static final double STEP_SECONDS = 0.16;
     private static final double WALK_FRAME_SECONDS = 0.16;
+    private static final double MESSAGE_SECONDS = 3.5;
 
     private final TileMap map;
     private final Player player;
@@ -49,10 +55,15 @@ public class ExplorationView extends StackPane {
     private double walkTime;
     private long lastFrame;
     private boolean running;
-    private StepListener stepListener;
+    private TileListener stepListener;
     private IntPredicate portalOpen = zone -> true;
     private Hud hud;
     private Runnable onPause = () -> { };
+    private TileListener bumpListener;
+    private BooleanSupplier guardianPresent = () -> true;
+    private BooleanSupplier guardianOpen = () -> true;
+    private String message;
+    private double messageTimeLeft;
     private String zoneName = "";
 
     private final AnimationTimer loop = new AnimationTimer() {
@@ -88,17 +99,31 @@ public class ExplorationView extends StackPane {
     }
 
     @FunctionalInterface
-    public interface StepListener {
+    public interface TileListener {
 
-        void onStep(int x, int y);
+        void onTile(int x, int y);
     }
 
-    public void setOnStep(StepListener listener) {
+    public void setOnStep(TileListener listener) {
         this.stepListener = listener;
     }
 
     public void setPortalOpen(IntPredicate portalOpen) {
         this.portalOpen = portalOpen;
+    }
+
+    public void setOnBump(TileListener listener) {
+        this.bumpListener = listener;
+    }
+
+    public void setGuardian(BooleanSupplier present, BooleanSupplier open) {
+        this.guardianPresent = present;
+        this.guardianOpen = open;
+    }
+
+    public void showMessage(String text) {
+        this.message = text;
+        this.messageTimeLeft = MESSAGE_SECONDS;
     }
 
     public void setOnPause(Runnable onPause) {
@@ -132,6 +157,11 @@ public class ExplorationView extends StackPane {
         Direction direction = directionOf(event);
         if (direction != null && !heldDirections.contains(direction)) {
             heldDirections.push(direction);
+            int targetX = player.getX() + direction.getDx();
+            int targetY = player.getY() + direction.getDy();
+            if (!stepping && !map.isWalkable(targetX, targetY) && bumpListener != null) {
+                bumpListener.onTile(targetX, targetY);
+            }
         }
     }
 
@@ -153,13 +183,14 @@ public class ExplorationView extends StackPane {
     }
 
     private void update(double elapsed) {
+        messageTimeLeft = Math.max(0, messageTimeLeft - elapsed);
         if (stepping) {
             stepProgress += elapsed / STEP_SECONDS;
             walkTime += elapsed;
             if (stepProgress >= 1) {
                 stepping = false;
                 if (stepListener != null) {
-                    stepListener.onStep(player.getX(), player.getY());
+                    stepListener.onTile(player.getX(), player.getY());
                 }
             }
         }
@@ -206,6 +237,9 @@ public class ExplorationView extends StackPane {
         if (hud != null) {
             hud.draw(gc, zoneName, VIEW_HEIGHT);
         }
+        if (messageTimeLeft > 0 && message != null) {
+            drawMessage(gc);
+        }
     }
 
     private void drawTile(GraphicsContext gc, int x, int y, double px, double py) {
@@ -219,16 +253,49 @@ public class ExplorationView extends StackPane {
                 sprites.draw(gc, on ? "tiles/portal_on.png" : "tiles/portal_off.png", px, py, CELL,
                         on ? Color.DEEPSKYBLUE : Color.MIDNIGHTBLUE);
             }
-            case BOSS -> {
-                sprites.draw(gc, tileSprite(floorName()), px, py, CELL, Color.BURLYWOOD);
-                sprites.draw(gc, "robots/chef_nexus/map/idle_down.png", px, py, CELL, Color.CRIMSON);
-            }
+            case CHIEF -> drawGuardian(gc, "robots/exosquelette/map/idle_down.png", px, py);
+            case BOSS -> drawGuardian(gc, "robots/chef_nexus/map/idle_down.png", px, py);
             default -> sprites.draw(gc, tileSprite(floorName()), px, py, CELL, Color.BURLYWOOD);
         }
     }
 
     private String floorName() {
         return "home".equals(zonePrefix) ? "floor" : "ground";
+    }
+
+    private void drawGuardian(GraphicsContext gc, String sprite, double px, double py) {
+        sprites.draw(gc, tileSprite(floorName()), px, py, CELL, Color.BURLYWOOD);
+        if (!guardianPresent.getAsBoolean()) {
+            return;
+        }
+        sprites.draw(gc, sprite, px, py, CELL, Color.CRIMSON);
+        if (!guardianOpen.getAsBoolean()) {
+            gc.setFill(Color.rgb(10, 14, 28, 0.55));
+            gc.fillRect(px, py, CELL, CELL);
+            gc.setFill(Color.rgb(255, 200, 80));
+            gc.fillRect(px + CELL / 2.0 - 12, py + CELL / 2.0 - 4, 24, 20);
+            gc.setStroke(Color.rgb(255, 200, 80));
+            gc.setLineWidth(4);
+            gc.strokeArc(px + CELL / 2.0 - 9, py + CELL / 2.0 - 20, 18, 26, 0, 180, ArcType.OPEN);
+        }
+    }
+
+    private void drawMessage(GraphicsContext gc) {
+        double width = 760;
+        double x = (VIEW_WIDTH - width) / 2;
+        double y = 168;
+        gc.setFill(Color.rgb(10, 14, 28, 0.88));
+        gc.fillRect(x, y, width, 44);
+        gc.setStroke(Color.rgb(255, 200, 80));
+        gc.setLineWidth(2);
+        gc.strokeRect(x, y, width, 44);
+        gc.setFill(Color.rgb(235, 238, 250));
+        gc.setFont(Font.font("Monospaced", 16));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.CENTER);
+        gc.fillText(message, VIEW_WIDTH / 2.0, y + 22);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.BASELINE);
     }
 
     private String encounterName() {

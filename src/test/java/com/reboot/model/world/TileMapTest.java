@@ -96,10 +96,34 @@ class TileMapTest {
     }
 
     @Test
-    void parse_reconnait_la_tuile_du_boss_et_elle_est_franchissable() {
-        TileMap map = TileMap.parse(List.of("#@B#"));
+    void parse_reconnait_les_gardiens_et_on_ne_les_traverse_pas() {
+        TileMap map = TileMap.parse(List.of("#@BC"));
         assertEquals(Tile.BOSS, map.tileAt(2, 0));
-        assertTrue(map.isWalkable(2, 0));
+        assertEquals(Tile.CHIEF, map.tileAt(3, 0));
+        assertFalse(map.isWalkable(2, 0));
+        assertFalse(map.isWalkable(3, 0));
+    }
+
+    private static int count(TileMap zone, Tile tile) {
+        int found = 0;
+        for (int y = 0; y < zone.getHeight(); y++) {
+            for (int x = 0; x < zone.getWidth(); x++) {
+                if (zone.tileAt(x, y) == tile) {
+                    found++;
+                }
+            }
+        }
+        return found;
+    }
+
+    @Test
+    void load_lit_les_zones_de_combat_avec_un_seul_chef_chacune() {
+        for (String path : List.of("/com/reboot/maps/zone1.txt", "/com/reboot/maps/zone2.txt")) {
+            TileMap zone = TileMap.load(path);
+            assertEquals(1, count(zone, Tile.CHIEF), path);
+            assertTrue(count(zone, Tile.ENCOUNTER) > 0, path);
+            assertEquals(0, zone.portalZoneAt(zone.getSpawnX(), zone.getSpawnY() - 1), path);
+        }
     }
 
     @Test

@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.reboot.model.combat.CombatOutcome;
 import com.reboot.model.combat.EncounterResult;
 import com.reboot.model.event.RobotKilledEvent;
+import com.reboot.model.event.RobotReprogrammedEvent;
+import com.reboot.model.quest.Campaign;
 import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Exosquelette;
@@ -148,6 +150,56 @@ class GameTest {
         assertEquals(15, game.getWantedBar().getValue());
         assertEquals(1, game.getDataCenter().getRobotsKilled());
         assertEquals(2, game.getParts().getParts());
+    }
+
+    @Test
+    void victories_areCountedInTheCurrentZone() {
+        Game game = Game.newGame();
+        game.enterZone(Campaign.RESIDENTIAL);
+        game.onCombatEnd(victoryAgainst(new HealerBot(2)));
+        game.onCombatEnd(victoryAgainst(new HealerBot(2)));
+        assertEquals(2, game.getWins(Campaign.RESIDENTIAL));
+        assertEquals(0, game.getWins(Campaign.INDUSTRIAL));
+    }
+
+    @Test
+    void beatingAnExosquelette_defeatsTheChiefOfTheCurrentZone() {
+        Game game = Game.newGame();
+        game.enterZone(Campaign.RESIDENTIAL);
+        game.onCombatEnd(victoryAgainst(new Exosquelette(4)));
+        assertTrue(game.isChiefDefeated(Campaign.RESIDENTIAL));
+        assertFalse(game.canChallengeChief(Campaign.RESIDENTIAL));
+    }
+
+    @Test
+    void theQuests_gateTheZonesAndTheChief() {
+        Game game = Game.newGame();
+        assertTrue(game.isZoneUnlocked(Campaign.RESIDENTIAL));
+        assertFalse(game.isZoneUnlocked(Campaign.INDUSTRIAL));
+        assertFalse(game.canChallengeChief(Campaign.RESIDENTIAL));
+        assertEquals(1, game.getTeamSize());
+        assertEquals(Game.STARTER_LEVEL, game.getTeamLevel());
+    }
+
+    @Test
+    void theGuards_areFixedByTheWantedBar_onTheFirstEntry() {
+        Game game = Game.newGame();
+        for (int i = 0; i < 5; i++) {
+            game.getEvents().publish(new RobotKilledEvent(new HealerBot(1)));
+        }
+        game.enterZone(Campaign.DATA_CENTER);
+        assertEquals(Campaign.MAIN_GUARDS, game.getGuardsRequired());
+
+        game.getEvents().publish(new RobotReprogrammedEvent(new HealerBot(1)));
+        game.enterZone(Campaign.HOME);
+        game.enterZone(Campaign.DATA_CENTER);
+        assertEquals(Campaign.MAIN_GUARDS, game.getGuardsRequired());
+    }
+
+    @Test
+    void beforeTheDataCenter_theGuardsPreviewFollowsTheBar() {
+        Game game = Game.newGame();
+        assertEquals(Campaign.DISCREET_GUARDS, game.getGuardsRequired());
     }
 
     @Test

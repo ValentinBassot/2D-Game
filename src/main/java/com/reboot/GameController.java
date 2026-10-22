@@ -5,13 +5,15 @@ import com.reboot.model.combat.CombatOutcome;
 import com.reboot.model.combat.Encounter;
 import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
-import com.reboot.model.game.Game;
-import com.reboot.model.settings.Settings;
-import com.reboot.model.story.MemoryBook;
+import com.reboot.model.fighter.Exosquelette;
 import com.reboot.model.fighter.Robot;
 import com.reboot.model.fighter.RobotFactory;
 import com.reboot.model.fighter.RobotType;
 import com.reboot.model.game.ChoiceResolver;
+import com.reboot.model.game.Game;
+import com.reboot.model.quest.Campaign;
+import com.reboot.model.settings.Settings;
+import com.reboot.model.story.MemoryBook;
 import com.reboot.model.world.EncounterTrigger;
 import com.reboot.model.world.Player;
 import com.reboot.model.world.Tile;
@@ -34,18 +36,22 @@ import javafx.application.Platform;
 
 public class GameController implements CombatLauncher {
 
-    private static final int HOME = 0;
+    private static final int HOME = Campaign.HOME;
     private static final int ENCOUNTER_ONE_IN = 6;
+    private static final String QUESTS_HINT = " (Échap > Quêtes)";
 
-    private record ZoneSpec(String name, String mapPath, String spritePrefix, int level, List<RobotType> robots) {
+    private record ZoneSpec(String name, String mapPath, String spritePrefix, int level, List<RobotType> robots,
+                            int chiefLevel) {
     }
 
     private static final Map<Integer, ZoneSpec> ZONES = Map.of(
-            HOME, new ZoneSpec("Home de Léon", "/com/reboot/maps/home.txt", "home", 0, List.of()),
-            1, new ZoneSpec("Quartier résidentiel", "/com/reboot/maps/zone1.txt", "z1", 2,
-                    List.of(RobotType.HEALER)),
-            3, new ZoneSpec("Data center", "/com/reboot/maps/zone3.txt", "z3", 8,
-                    List.of(RobotType.values())));
+            HOME, new ZoneSpec("Home de Léon", "/com/reboot/maps/home.txt", "home", 0, List.of(), 0),
+            Campaign.RESIDENTIAL, new ZoneSpec("Quartier résidentiel", "/com/reboot/maps/zone1.txt", "z1", 2,
+                    List.of(RobotType.HEALER), 4),
+            Campaign.INDUSTRIAL, new ZoneSpec("Zone industrielle", "/com/reboot/maps/zone2.txt", "z2", 5,
+                    List.of(RobotType.TANK, RobotType.INFIGHTER), 7),
+            Campaign.DATA_CENTER, new ZoneSpec("Data center", "/com/reboot/maps/zone3.txt", "z3", 8,
+                    List.of(RobotType.values()), 0));
 
     private final ScaledScreen screen;
     private final Settings settings;
@@ -103,6 +109,7 @@ public class GameController implements CombatLauncher {
         }
         ZoneSpec spec = ZONES.get(zone);
         currentZone = zone;
+        game.enterZone(zone);
         map = TileMap.load(spec.mapPath());
         if (zone == HOME) {
             game.restAtHome();
@@ -112,7 +119,9 @@ public class GameController implements CombatLauncher {
         exploration = new ExplorationView(map, arrival(from), spec.spritePrefix(), seen, settings.getKeys());
         exploration.setOnStep(this::onStep);
         exploration.setOnPause(this::showPause);
-        exploration.setPortalOpen(ZONES::containsKey);
+        exploration.setOnBump(this::onBump);
+        exploration.setPortalOpen(target -> ZONES.containsKey(target) && game.isZoneUnlocked(target));
+        exploration.setGuardian(() -> !guardianDefeated(), this::guardianOpen);
         exploration.setHud(new Hud(game), spec.name());
         showExploration();
     }
@@ -138,15 +147,38 @@ public class GameController implements CombatLauncher {
     private void onStep(int x, int y) {
         Tile tile = map.tileAt(x, y);
         int target = map.portalZoneAt(x, y);
-        if (tile == Tile.PORTAL && ZONES.containsKey(target)) {
+        if (tile == Tile.PORTAL && ZONES.containsKey(target) && game.isZoneUnlocked(target)) {
             enterZone(target, currentZone);
-        } else if (tile == Tile.BOSS) {
-            launch(new Boss());
+        } else if (tile == Tile.PORTAL) {
+            exploration.showMessage("Portail éteint : termine d'abord les quêtes du chapitre en cours" + QUESTS_HINT);
         } else if (encounters.shouldTrigger(tile)) {
             ZoneSpec spec = ZONES.get(currentZone);
             int level = RobotFactory.encounterLevel(spec.level(), game.getDataCenter().getNetworkBonus());
             fightRobot(robots.createEncounter(spec.robots(), level));
         }
+    }
+
+    private void onBump(int x, int y) {
+        Tile tile = map.tileAt(x, y);
+        if ((tile != Tile.CHIEF && tile != Tile.BOSS) || guardianDefeated()) {
+            return;
+        }
+        if (guardianOpen()) {
+            launch(tile == Tile.BOSS ? new Boss() : new Exosquelette(ZONES.get(currentZone).chiefLevel()));
+        } else if (tile == Tile.BOSS) {
+            exploration.showMessage("Le chef de NEXUS est protégé : vaincs d'abord ses gardes "
+                    + game.getWins(currentZone) + " / " + game.getGuardsRequired() + QUESTS_HINT);
+        } else {
+            exploration.showMessage("L'exosquelette t'ignore : remplis d'abord les autres quêtes" + QUESTS_HINT);
+        }
+    }
+
+    private boolean guardianDefeated() {
+        return currentZone == Campaign.DATA_CENTER ? game.isBossDefeated() : game.isChiefDefeated(currentZone);
+    }
+
+    private boolean guardianOpen() {
+        return currentZone == Campaign.DATA_CENTER ? game.canChallengeBoss() : game.canChallengeChief(currentZone);
     }
 
     @Override
