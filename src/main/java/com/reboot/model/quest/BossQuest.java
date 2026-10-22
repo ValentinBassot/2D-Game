@@ -3,6 +3,10 @@ package com.reboot.model.quest;
 /** Vaincre le chef de NEXUS, au cœur du data center. */
 public class BossQuest implements Quest {
 
+    /** Crée la quête finale. */
+    public BossQuest() {
+    }
+
     @Override
     public String getDescription() {
         return "Vaincre le chef de NEXUS";

@@ -1,11 +1,17 @@
 package com.reboot.model.fighter;
 
+/**
+ * État d'un robot K.O. en réparation. Il revient après {@value #VICTORIES_TO_REPAIR} victoires de l'équipe,
+ * une de moins par pièce dépensée.
+ */
 public class RepairingState implements RobotState {
 
+    /** Le nombre de victoires nécessaires pour réparer un robot. */
     public static final int VICTORIES_TO_REPAIR = 3;
 
     private final int victoriesLeft;
 
+    /** Crée une réparation qui commence, avec le délai complet. */
     public RepairingState() {
         this(VICTORIES_TO_REPAIR);
     }

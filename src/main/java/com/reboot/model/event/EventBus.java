@@ -5,15 +5,19 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Le sujet du pattern Observer : il relaie chaque événement publié à tous ses abonnés.
+ * Bus d'événements, c'est le sujet de notre pattern Observer. Il transmet chaque événement à tous ses
+ * abonnés.
  *
- * <p>Celui qui publie (l'écran de choix, le combat) ne connaît pas ceux qui réagissent
- * (barre de recherche, réseau, pièces) : on ajoute une conséquence en abonnant un listener,
- * sans modifier le code qui publie.
+ * <p>Le code qui publie ne connaît pas ceux qui réagissent. Pour ajouter une conséquence, on abonne un
+ * nouveau listener et on ne touche pas au reste.
  */
 public class EventBus {
 
     private final List<GameEventListener> listeners = new ArrayList<>();
+
+    /** Crée un bus vide, sans abonné. */
+    public EventBus() {
+    }
 
     /**
      * Abonne un listener à tous les événements à venir.

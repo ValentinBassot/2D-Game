@@ -5,15 +5,19 @@ import com.reboot.model.event.RobotKilledEvent;
 import com.reboot.model.fighter.Robot;
 
 /**
- * Les pièces de réparation du joueur. On ne les obtient qu'en achevant des robots,
- * et chacune retire une victoire au délai de réparation d'un robot K.O.
+ * Stock de pièces de réparation. On en gagne seulement en achevant des robots, et chaque pièce enlève une
+ * victoire au délai de réparation.
  */
 public class PartsStock implements GameEventListener {
 
     private int parts;
 
+    /** Crée un stock vide. */
+    public PartsStock() {
+    }
+
     /**
-     * Le nombre de pièces récupérées en achevant un robot : plus il est haut niveau, plus il en donne.
+     * Nombre de pièces gagnées en achevant un robot. Plus il a un niveau élevé, plus il en rapporte.
      *
      * @param robot le robot achevé
      * @return 1 pièce, plus 1 tous les 3 niveaux
@@ -43,6 +47,6 @@ public class PartsStock implements GameEventListener {
         return true;
     }
 
-    /** @return le nombre de pièces disponibles */
+    /** {@return le nombre de pièces disponibles} */
     public int getParts() { return parts; }
 }

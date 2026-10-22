@@ -3,7 +3,7 @@ package com.reboot.model.event;
 import com.reboot.model.fighter.Combattant;
 
 /**
- * Le joueur a vaincu un exosquelette : son pilote humain est neutralisé.
+ * Le joueur a battu un exosquelette, son pilote humain est neutralisé.
  *
  * @param exosquelette l'exosquelette vaincu
  */

@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * La Home de Léon : elle accueille les robots reprogrammés qui n'ont pas de place dans l'équipe.
- */
+/** La Home de Léon. Elle garde les robots reprogrammés qui n'ont pas de place dans l'équipe. */
 public class Home {
 
     private final List<Robot> stored = new ArrayList<>();
+
+    /** Crée une Home vide. */
+    public Home() {
+    }
 
     /**
      * Range un robot allié à la Home.
@@ -62,7 +64,7 @@ public class Home {
     }
 
     /**
-     * Remplace chaque robot de l'équipe en réparation par un robot de la Home prêt à se battre.
+     * Remplace les robots de l'équipe en réparation par des robots de la Home en état de se battre.
      *
      * @param team l'équipe du joueur
      */
@@ -80,12 +82,12 @@ public class Home {
         stored.forEach(Robot::recordTeamVictory);
     }
 
-    /** @return {@code true} si aucun robot rangé ne peut se battre */
+    /** {@return {@code true} si aucun robot rangé ne peut se battre} */
     public boolean hasNoFighter() {
         return stored.stream().noneMatch(Robot::canFightForPlayer);
     }
 
-    /** @return les robots rangés, en lecture seule */
+    /** {@return les robots rangés, en lecture seule} */
     public List<Robot> getStored() {
         return Collections.unmodifiableList(stored);
     }

@@ -4,16 +4,18 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Crée les robots rencontrés dans une zone (pattern Factory).
+ * Fabrique des robots rencontrés dans une zone (pattern Factory).
  *
- * <p>Le reste du jeu demande « un robot de cette zone » sans connaître les classes concrètes :
- * ajouter un type de robot ne touche que cette fabrique.
+ * <p>Le reste du jeu demande juste « un robot de cette zone » sans connaître les classes concrètes. Si on
+ * ajoute un type de robot, il n'y a que cette classe à modifier.
  */
 public class RobotFactory {
 
     private final Random random;
 
     /**
+     * Crée une fabrique de robots.
+     *
      * @param random le générateur, injecté pour que les tests soient reproductibles
      */
     public RobotFactory(Random random) {
@@ -21,7 +23,8 @@ public class RobotFactory {
     }
 
     /**
-     * Le niveau des robots rencontrés : le niveau de la zone, plus le bonus du réseau NEXUS.
+     * Calcule le niveau des robots rencontrés, c'est-à-dire le niveau de la zone plus le bonus du réseau
+     * NEXUS.
      *
      * @param zoneLevel le niveau de la zone
      * @param networkBonus le bonus du data center, qui grandit avec les robots achevés

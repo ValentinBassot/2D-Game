@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Les souvenirs des robots, affichés sur l'écran de choix : ce que le robot a fait de bien
- * avant que NEXUS ne le pirate. Ils sont lus depuis un fichier texte, une ligne par souvenir,
- * au format {@code TYPE|texte} : on en ajoute sans toucher au code.
+ * Souvenirs des robots, affichés sur l'écran de choix. Ce sont les bonnes actions du robot avant que NEXUS
+ * le pirate. On les lit dans un fichier texte, une ligne par souvenir au format {@code TYPE|texte}, donc on
+ * peut en ajouter sans recompiler.
  */
 public final class MemoryBook {
 
@@ -87,8 +87,9 @@ public final class MemoryBook {
     }
 
     /**
+     * {@return le nombre de souvenirs de ce type}
+     *
      * @param type un type de robot
-     * @return le nombre de souvenirs de ce type
      */
     public int count(RobotType type) {
         return memories.get(type).size();

@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Les options du joueur : taille de la fenêtre, plein écran, luminosité et touches.
- * Elles s'enregistrent sous forme de {@link Properties} pour être retrouvées au prochain lancement.
+ * Options du joueur (taille de fenêtre, plein écran, luminosité, touches). Elles sont sauvegardées en
+ * {@link Properties} pour être rechargées au prochain lancement.
  */
 public class Settings {
 
@@ -27,6 +27,10 @@ public class Settings {
     private boolean fullscreen;
     private int brightness;
 
+    /** Options par défaut, en fenêtré, avec la plus petite taille et la luminosité normale. */
+    public Settings() {
+    }
+
     /**
      * Passe à la taille de fenêtre suivante ou précédente, en boucle.
      *
@@ -37,7 +41,7 @@ public class Settings {
     }
 
     /**
-     * Change la luminosité, sans sortir des bornes.
+     * Change la luminosité en restant dans les bornes.
      *
      * @param delta le pas à ajouter, positif ou négatif
      */
@@ -45,24 +49,28 @@ public class Settings {
         brightness = Math.max(MIN_BRIGHTNESS, Math.min(MAX_BRIGHTNESS, brightness + delta));
     }
 
-    /** @param fullscreen {@code true} pour jouer en plein écran */
+    /**
+     * Active ou désactive le plein écran.
+     *
+     * @param fullscreen {@code true} pour jouer en plein écran
+     */
     public void setFullscreen(boolean fullscreen) {
         this.fullscreen = fullscreen;
     }
 
-    /** @return la taille de fenêtre choisie */
+    /** {@return la taille de fenêtre choisie} */
     public WindowSize getWindowSize() { return WINDOW_SIZES.get(windowSizeIndex); }
 
-    /** @return {@code true} si le jeu est en plein écran */
+    /** {@return {@code true} si le jeu est en plein écran} */
     public boolean isFullscreen() { return fullscreen; }
 
-    /** @return la luminosité, entre {@value #MIN_BRIGHTNESS} et {@value #MAX_BRIGHTNESS} */
+    /** {@return la luminosité, entre {@value #MIN_BRIGHTNESS} et {@value #MAX_BRIGHTNESS}} */
     public int getBrightness() { return brightness; }
 
-    /** @return les touches du joueur */
+    /** {@return les touches du joueur} */
     public KeyBindings getKeys() { return keys; }
 
-    /** @return les options, prêtes à être enregistrées dans un fichier */
+    /** {@return les options, prêtes à être enregistrées dans un fichier} */
     public Properties toProperties() {
         Properties properties = new Properties();
         properties.setProperty(WINDOW, Integer.toString(windowSizeIndex));
@@ -75,8 +83,8 @@ public class Settings {
     }
 
     /**
-     * Relit des options enregistrées. Une valeur absente ou invalide garde sa valeur par défaut :
-     * un fichier abîmé ne doit jamais empêcher le jeu de démarrer.
+     * Recharge des options sauvegardées. Une valeur manquante ou invalide reprend sa valeur par défaut,
+     * pour qu'un fichier abîmé n'empêche pas le jeu de se lancer.
      *
      * @param properties les options lues dans le fichier
      * @return les options

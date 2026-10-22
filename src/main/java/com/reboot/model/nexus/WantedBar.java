@@ -6,10 +6,10 @@ import com.reboot.model.event.RobotKilledEvent;
 import com.reboot.model.event.RobotReprogrammedEvent;
 
 /**
- * La barre de recherche : à quel point NEXUS traque le joueur, de 0 à 100.
+ * Barre de recherche, de 0 à 100. Elle mesure à quel point NEXUS traque le joueur.
  *
- * <p>Elle n'est modifiée que par les événements du jeu, jamais directement :
- * achever un robot la fait monter, le reprogrammer la fait baisser.
+ * <p>Elle bouge uniquement via les événements du jeu. Achever un robot la fait monter, le reprogrammer la
+ * fait baisser.
  */
 public class WantedBar implements GameEventListener {
 
@@ -23,6 +23,10 @@ public class WantedBar implements GameEventListener {
     public static final int REPROGRAM = 5;
 
     private int value;
+
+    /** Crée une barre vide, NEXUS ne connaît pas encore le joueur. */
+    public WantedBar() {
+    }
 
     @Override
     public void onRobotKilled(RobotKilledEvent event) {
@@ -43,9 +47,9 @@ public class WantedBar implements GameEventListener {
         value = Math.max(0, Math.min(MAX, value + delta));
     }
 
-    /** @return la valeur actuelle, entre 0 et 100 */
+    /** {@return la valeur actuelle, entre 0 et 100} */
     public int getValue() { return value; }
 
-    /** @return le palier atteint par la valeur actuelle */
+    /** {@return le palier atteint par la valeur actuelle} */
     public WantedTier getTier() { return WantedTier.of(value); }
 }
