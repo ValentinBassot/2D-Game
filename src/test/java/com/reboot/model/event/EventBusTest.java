@@ -92,4 +92,13 @@ class EventBusTest {
         assertThrows(NullPointerException.class, () -> bus.subscribe(null));
         assertThrows(NullPointerException.class, () -> bus.publish(null));
     }
+
+    @Test
+    void aListenerThatOverridesNothing_ignoresEveryEvent() {
+        EventBus bus = new EventBus();
+        bus.subscribe(new GameEventListener() { });
+        bus.publish(new RobotKilledEvent(new TankBot(1)));
+        bus.publish(new RobotReprogrammedEvent(new TankBot(1)));
+        bus.publish(new PilotNeutralizedEvent(new Exosquelette(4)));
+    }
 }

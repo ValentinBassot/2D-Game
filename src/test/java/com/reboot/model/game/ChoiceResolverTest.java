@@ -101,4 +101,11 @@ class ChoiceResolverTest {
         ally.reprogram();
         assertThrows(IllegalStateException.class, () -> resolver.finish(ally));
     }
+
+    @Test
+    void aWeakerRecruit_isPreviewedAsGoingToTheHome() {
+        resolver.reprogram(defeated(3));
+        resolver.reprogram(defeated(3));
+        assertEquals("- 5 recherche · part à la Home", resolver.previewReprogram(defeated(1)));
+    }
 }
