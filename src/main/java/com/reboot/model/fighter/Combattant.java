@@ -6,17 +6,29 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Tout ce qui se bat : stats, points de vie, compétences et expérience.
+ *
+ * <p>Les stats se calculent à partir des stats de base et du niveau : chaque niveau ajoute
+ * 10 % de la valeur de base. Monter de niveau fait donc grandir toutes les stats.
+ */
 public abstract class Combattant {
 
+    /** La frappe de base, connue de tous les combattants. */
     public static final DamageSkill STRIKE = new DamageSkill("Frappe", 10);
+    /** L'XP nécessaire pour passer au niveau suivant vaut ce nombre fois le niveau actuel. */
+    public static final int XP_PER_LEVEL = 50;
+    /** L'XP rapportée par un combattant vaincu vaut ce nombre fois son niveau. */
+    public static final int XP_REWARD_PER_LEVEL = 10;
 
     private final String name;
-    private final int level;
-    private final int maxHp;
+    private final int baseHp;
+    private final int baseAtk;
+    private final int baseDef;
+    private final int baseSpeed;
+    private int level;
+    private int xp;
     private int hp;
-    private final int atk;
-    private final int def;
-    private final int speed;
     private final List<Skill> skills = new ArrayList<>();
     private int defenseMultiplier = 1;
     private int boostTurnsLeft;
@@ -27,15 +39,50 @@ public abstract class Combattant {
         }
         this.name = name;
         this.level = level;
-        this.maxHp = statAtLevel(baseHp, level);
-        this.hp = this.maxHp;
-        this.atk = statAtLevel(baseAtk, level);
-        this.def = statAtLevel(baseDef, level);
-        this.speed = statAtLevel(baseSpeed, level);
+        this.baseHp = baseHp;
+        this.baseAtk = baseAtk;
+        this.baseDef = baseDef;
+        this.baseSpeed = baseSpeed;
+        this.hp = getMaxHp();
     }
 
-    private static int statAtLevel(int base, int level) {
+    private int statAtLevel(int base) {
         return base + base * (level - 1) / 10;
+    }
+
+    /**
+     * Ajoute de l'expérience et fait monter de niveau autant de fois que possible.
+     * Les PV gagnés en montant de niveau s'ajoutent aux PV actuels, sauf pour un combattant K.O.
+     *
+     * @param amount l'XP gagnée, positive ou nulle
+     * @return le nombre de niveaux gagnés
+     */
+    public int gainXp(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("XP cannot be negative");
+        }
+        xp += amount;
+        int gained = 0;
+        while (xp >= getXpToNextLevel()) {
+            xp -= getXpToNextLevel();
+            int maxBefore = getMaxHp();
+            level++;
+            gained++;
+            if (!isKo()) {
+                hp += getMaxHp() - maxBefore;
+            }
+        }
+        return gained;
+    }
+
+    /** @return l'XP nécessaire pour passer au niveau suivant */
+    public int getXpToNextLevel() {
+        return XP_PER_LEVEL * level;
+    }
+
+    /** @return l'XP que rapporte ce combattant quand il est vaincu */
+    public int getXpReward() {
+        return XP_REWARD_PER_LEVEL * level;
     }
 
     public void takeDamage(int amount) {
@@ -49,7 +96,7 @@ public abstract class Combattant {
         if (amount < 0) {
             throw new IllegalArgumentException("Heal cannot be negative");
         }
-        this.hp = Math.min(this.maxHp, this.hp + amount);
+        this.hp = Math.min(getMaxHp(), this.hp + amount);
     }
 
     public boolean isKo() {
@@ -99,9 +146,10 @@ public abstract class Combattant {
 
     public String getName() { return name; }
     public int getLevel() { return level; }
+    public int getXp() { return xp; }
     public int getHp() { return hp; }
-    public int getMaxHp() { return maxHp; }
-    public int getAtk() { return atk; }
-    public int getDef() { return def * defenseMultiplier; }
-    public int getSpeed() { return speed; }
+    public int getMaxHp() { return statAtLevel(baseHp); }
+    public int getAtk() { return statAtLevel(baseAtk); }
+    public int getDef() { return statAtLevel(baseDef) * defenseMultiplier; }
+    public int getSpeed() { return statAtLevel(baseSpeed); }
 }

@@ -56,6 +56,22 @@ class ChoiceResolverTest {
     }
 
     @Test
+    void aStrongerRecruit_replacesTheWeakestTeammate() {
+        resolver.reprogram(defeated(1));
+        resolver.reprogram(defeated(1));
+        HealerBot strong = defeated(4);
+        assertTrue(resolver.previewReprogram(strong).contains("remplace HealerBot (Nv 1)"));
+
+        ChoiceOutcome outcome = resolver.reprogram(strong);
+
+        assertTrue(game.getTeam().getRobots().contains(strong));
+        assertEquals(1, game.getHome().getStored().size());
+        assertEquals(1, game.getHome().getStored().get(0).getLevel());
+        assertEquals(2 + 1 + 4, game.getTeam().getTeamLevel());
+        assertTrue(outcome.lines().get(0).contains("remplace"));
+    }
+
+    @Test
     void finish_givesParts_raisesTheBar_andFeedsTheNetwork() {
         ChoiceOutcome outcome = resolver.finish(defeated(6));
 
