@@ -3,7 +3,7 @@ package com.reboot;
 import com.reboot.model.combat.CombatLauncher;
 import com.reboot.model.combat.CombatOutcome;
 import com.reboot.model.combat.Encounter;
-import com.reboot.model.combat.FirstSkillStrategy;
+import com.reboot.model.combat.RandomStrategy;
 import com.reboot.model.fighter.Boss;
 import com.reboot.model.fighter.Combattant;
 import com.reboot.model.fighter.Exosquelette;
@@ -228,7 +228,7 @@ public class GameController implements CombatLauncher {
 
     private void startCombat(Combattant enemy, Runnable afterVictory) {
         exploration.stop();
-        CombatView combat = new CombatView(new Encounter(game.getTeam(), enemy, new FirstSkillStrategy()), result -> {
+        CombatView combat = new CombatView(new Encounter(game.getTeam(), enemy, new RandomStrategy(random)), result -> {
             game.onCombatEnd(result);
             if (game.isOver()) {
                 showEnd();
