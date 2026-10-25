@@ -91,7 +91,12 @@ classDiagram
         <<interface>>
         +getName() String
         +hasPriority() boolean
+        +isOncePerCombat() boolean
         +apply(Combat combat, Combattant user, Combattant target) void
+    }
+
+    class OncePerCombatSkill {
+        -Skill skill
     }
 
     class DamageSkill {
@@ -121,6 +126,8 @@ classDiagram
     Skill <|.. DamageSkill
     Skill <|.. TeamHealSkill
     Skill <|.. DefenseBoostSkill
+    Skill <|.. OncePerCombatSkill
+    OncePerCombatSkill o-- "1" Skill : enveloppe
 ```
 
 Correspondance avec les compétences du GDD :
@@ -130,7 +137,7 @@ Correspondance avec les compétences du GDD :
 | Frappe, Écrasement, Rafale de coups | `DamageSkill` | puissance 10, 16, 16 |
 | Nanobots corrosifs | `DamageSkill` | puissance 12, `ignoresDefense` |
 | Crochet | `DamageSkill` | puissance 12, `priority` |
-| Surcharge (exosquelettes) | `DamageSkill` | puissance 18, une fois par combat via `overloadUsed` |
+| Surcharge (exosquelettes) | `OncePerCombatSkill` autour d'un `DamageSkill` | puissance 18, une fois par combat |
 | Patch réseau | `TeamHealSkill` | 15 PV à toute l'équipe active |
 | Blindage | `DefenseBoostSkill` | DEF × 2 pendant 2 tours |
 
@@ -195,7 +202,9 @@ stateDiagram-v2
 
 ## 3. Combat
 
-`Combat` ne connaît ni JavaFX ni la carte : il se teste seul. L'IA ennemie est une `CombatStrategy` interchangeable ; `RandomStrategy` reçoit son générateur aléatoire par le constructeur, ce qui rend les tests reproductibles. `CombatLauncher` est la frontière entre l'exploration et le combat.
+`Combat` ne connaît ni JavaFX ni la carte : il se teste seul. `Encounter` crée le combat et en tire un `EncounterResult` : le choix reprogrammer / achever n'est proposé qu'après une victoire contre un ennemi reprogrammable. `CombatLauncher` est la frontière entre l'exploration et le combat.
+
+L'IA ennemie suit le pattern Strategy : `Combat` demande sa compétence à une `CombatStrategy` sans savoir comment elle décide. `FirstSkillStrategy` (toujours la première compétence) est la stratégie par défaut ; en jeu, `GameController` donne une `RandomStrategy`, qui reçoit son générateur aléatoire par le constructeur pour que les tests soient reproductibles. `Combat` ne donne à la stratégie que les compétences encore utilisables : une compétence à usage unique (`isOncePerCombat()`) déjà lancée, comme la Surcharge, en est retirée.
 
 ```mermaid
 classDiagram
@@ -206,32 +215,52 @@ classDiagram
         +launch(Combattant enemy) void
     }
 
+    class Encounter {
+        -Combat combat
+        +getCombat() Combat
+        +isFinished() boolean
+        +getResult() EncounterResult
+    }
+
+    class EncounterResult {
+        <<record>>
+        +CombatOutcome outcome
+        +Combattant enemy
+        +boolean choiceAvailable
+    }
+
     class Combat {
-        -Team playerTeam
+        -List~Robot~ roster
+        -Combattant active
         -Combattant enemy
         -CombatStrategy enemyStrategy
+        -Map spentSkills
         -int turn
         +useSkill(Skill skill) TurnResult
-        +switchRobot(Robot next) TurnResult
+        +switchTo(Robot next) TurnResult
+        +getSwitchOptions() List~Robot~
+        +mustSwitch() boolean
         +isOver() boolean
         +getOutcome() CombatOutcome
     }
 
     class CombatStrategy {
         <<interface>>
-        +chooseSkill(Combattant self, Combattant opponent) Skill
+        +chooseSkill(Combattant attacker, List~Skill~ usable, Combattant target) Skill
     }
+
+    class FirstSkillStrategy
 
     class RandomStrategy {
         -Random random
     }
 
-    class OffensiveStrategy {
-        -WantedBar wantedBar
-    }
-
-    class DamageCalculator {
-        +compute(Combattant attacker, Combattant defender, int power, boolean ignoresDefense) int
+    class Skill {
+        <<interface>>
+        +getName() String
+        +hasPriority() boolean
+        +isOncePerCombat() boolean
+        +apply(Combattant user, Combattant target) String
     }
 
     class TurnResult {
@@ -246,18 +275,20 @@ classDiagram
         DEFEAT
     }
 
-    CombatLauncher ..> Combat : crée
-    Combat --> "1" Team : équipe du joueur
+    CombatLauncher ..> Encounter : crée
+    Encounter *-- "1" Combat
+    Encounter ..> EncounterResult : produit
+    Combat --> "0..*" Robot : équipe du joueur
     Combat --> "1" Combattant : ennemi
     Combat o-- "1" CombatStrategy
-    Combat ..> DamageCalculator
+    Combat ..> Skill : apply()
     Combat ..> TurnResult
     Combat ..> CombatOutcome
+    CombatStrategy <|.. FirstSkillStrategy
     CombatStrategy <|.. RandomStrategy
-    CombatStrategy <|.. OffensiveStrategy
 ```
 
-`DamageCalculator` applique la formule du GDD : `max(1, puissance + ATK − DEF)`, puis × 1,5 arrondi à l'entier inférieur si le type de l'attaquant bat celui du défenseur. `OffensiveStrategy` est un bonus (COULD).
+`Combat` ne calcule plus les dégâts lui-même : il appelle `Skill.apply()`, et chaque compétence applique son effet (section 1). `DamageCalculator.compute()` garde la formule du GDD : `max(1, puissance + ATK − DEF)`, puis × 1,5 arrondi à l'entier inférieur si le type de l'attaquant bat celui du défenseur. `OffensiveStrategy` (IA offensive selon la barre de recherche) reste un bonus COULD, non codé.
 
 ## 4. Conséquences du choix
 
@@ -444,7 +475,7 @@ sequenceDiagram
 
     Joueur->>Vue: touche 1, 2 ou 3
     Vue->>Combat: useSkill(skill)
-    Combat->>IA: chooseSkill(ennemi, robot actif)
+    Combat->>IA: chooseSkill(ennemi, compétences utilisables, robot actif)
     IA-->>Combat: compétence ennemie
     Note over Combat: ordre du tour : priorité, puis VIT
 
@@ -545,11 +576,11 @@ stateDiagram-v2
 Ces choix ne sont pas dans le GDD. Ils sont à valider avant de coder.
 
 1. **Classes ajoutées** : `BaseStats`, `RobotType`, les trois implémentations de `Skill`, `DamageCalculator`, `TurnResult`, `CombatOutcome`, `EventBus`, `PartsStock`, `WantedTier`, `ChoiceResolver`, `Game`, `Zone`, `TileMap`, `Tile`. Leurs noms sont libres.
-2. **Surcharge une fois par combat** : gérée ici par un booléen dans `Exosquelette`. Une `Skill` à usage limité serait plus générale.
-3. **Plus aucun robot disponible** (tous en réparation) : toujours ouvert dans le GDD, donc absent des diagrammes.
-4. **XP et niveaux** (SHOULD) : seul `gainXp()` apparaît ; le détail du passage de niveau n'est pas modélisé.
+2. **Plus aucun robot disponible** (tous en réparation) : toujours ouvert dans le GDD, donc absent des diagrammes.
+3. **XP et niveaux** (SHOULD) : seul `gainXp()` apparaît ; le détail du passage de niveau n'est pas modélisé.
 
 ## Déjà tranché
 
+- **Surcharge une fois par combat** : `OncePerCombatSkill` (pattern Decorator) marque la compétence, et `Combat` retient celles déjà lancées. N'importe quelle compétence peut devenir à usage unique sans toucher à `Exosquelette`.
 - **`Boss` hérite d'`Exosquelette`**, et non de `Robot` : le chef de NEXUS est un humain en exosquelette, jamais reprogrammable et sans état « Détourné ».
 - **Trois événements** : `RobotKilledEvent`, `RobotReprogrammedEvent` et `PilotNeutralizedEvent`, parce que la barre de recherche bouge aussi quand on reprogramme (− 5) ou qu'on neutralise un pilote (+ 10).

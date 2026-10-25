@@ -10,13 +10,18 @@ import com.reboot.model.fighter.Robot;
 import com.reboot.model.fighter.TankBot;
 import com.reboot.model.skill.Skill;
 import com.reboot.model.team.Team;
+import java.util.Random;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 /**
  * Vérifie l'équilibrage calculé pour la progression : une équipe qui a suivi les quêtes
- * bat les chefs, une équipe trop faible perd. Chaque robot joue sa meilleure attaque.
+ * bat les chefs, une équipe trop faible perd. Chaque robot joue sa meilleure attaque, l'ennemi joue avec
+ * l'IA du jeu ({@link RandomStrategy}) et chaque combat est rejoué sur plusieurs graines.
  */
 class BossBalanceTest {
+
+    private static final int SEEDS = 200;
 
     private static Team team(int infighter, int healer, int tank) {
         InfighterBot first = new InfighterBot(infighter);
@@ -39,8 +44,8 @@ class BossBalanceTest {
         };
     }
 
-    private static CombatOutcome fight(Team team, Combattant enemy) {
-        Combat combat = new Combat(team, enemy);
+    private static CombatOutcome fight(Team team, Combattant enemy, long seed) {
+        Combat combat = new Combat(team, enemy, new RandomStrategy(new Random(seed)));
         while (!combat.isOver()) {
             if (combat.mustSwitch()) {
                 combat.switchTo(combat.getSwitchOptions().get(0));
@@ -52,19 +57,25 @@ class BossBalanceTest {
         return combat.getOutcome();
     }
 
+    private static void assertAlways(CombatOutcome expected, Supplier<Team> team, Supplier<Combattant> enemy) {
+        for (long seed = 0; seed < SEEDS; seed++) {
+            assertEquals(expected, fight(team.get(), enemy.get(), seed), "graine " + seed);
+        }
+    }
+
     @Test
     void aTeamThatFollowedTheQuests_beatsTheNexusChief() {
-        assertEquals(CombatOutcome.VICTORY, fight(team(8, 7, 7), new Boss()));
+        assertAlways(CombatOutcome.VICTORY, () -> team(8, 7, 7), Boss::new);
     }
 
     @Test
     void aTeamThatSkippedTheQuests_losesAgainstTheNexusChief() {
-        assertEquals(CombatOutcome.DEFEAT, fight(team(5, 5, 5), new Boss()));
+        assertAlways(CombatOutcome.DEFEAT, () -> team(5, 5, 5), Boss::new);
     }
 
     @Test
     void theZoneOneTeam_beatsItsChief_butNotTheBoss() {
-        assertEquals(CombatOutcome.VICTORY, fight(team(4, 4, 3), new Exosquelette(4)));
-        assertEquals(CombatOutcome.DEFEAT, fight(team(4, 4, 3), new Boss()));
+        assertAlways(CombatOutcome.VICTORY, () -> team(4, 4, 3), () -> new Exosquelette(4));
+        assertAlways(CombatOutcome.DEFEAT, () -> team(4, 4, 3), Boss::new);
     }
 }

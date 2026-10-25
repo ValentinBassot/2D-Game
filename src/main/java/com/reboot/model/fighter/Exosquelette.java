@@ -1,6 +1,8 @@
 package com.reboot.model.fighter;
 
 import com.reboot.model.skill.DamageSkill;
+import com.reboot.model.skill.OncePerCombatSkill;
+import com.reboot.model.skill.Skill;
 
 /**
  * Exosquelette piloté par un membre de NEXUS. Comme le pilote est humain, on ne peut pas le reprogrammer.
@@ -8,8 +10,8 @@ import com.reboot.model.skill.DamageSkill;
  */
 public class Exosquelette extends Combattant {
 
-    /** Surcharge, l'attaque des exosquelettes (puissance 18). */
-    public static final DamageSkill OVERLOAD = new DamageSkill("Surcharge", 18);
+    /** Surcharge, l'attaque des exosquelettes (puissance 18), une seule fois par combat. */
+    public static final Skill OVERLOAD = new OncePerCombatSkill(new DamageSkill("Surcharge", 18));
 
     private static final int BASE_HP = 55;
     private static final int BASE_ATK = 11;

@@ -70,8 +70,18 @@ class EncounterTest {
     void aTeamEncounter_startsWithTheActiveRobot() {
         InfighterBot starter = new InfighterBot(2);
         starter.reprogram();
-        Encounter encounter = new Encounter(new Team(starter), new HealerBot(1));
+        Encounter encounter = new Encounter(new Team(starter), new HealerBot(1), new FirstSkillStrategy());
         assertSame(starter, encounter.getCombat().getPlayer());
+    }
+
+    @Test
+    void aTeamEncounter_passesItsStrategyToTheCombat() {
+        TankBot starter = new TankBot(1);
+        starter.reprogram();
+        Encounter encounter = new Encounter(new Team(starter), new InfighterBot(1),
+                (attacker, usable, target) -> InfighterBot.HOOK);
+        TurnResult result = encounter.getCombat().useSkill(Combattant.STRIKE);
+        assertTrue(String.join(" ", result.log()).contains(InfighterBot.HOOK.getName()));
     }
 
     @Test
