@@ -5,7 +5,12 @@ import com.reboot.model.fighter.Robot;
 import com.reboot.model.skill.Skill;
 import com.reboot.model.team.Team;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Combat au tour par tour entre le robot actif du joueur et un ennemi.
@@ -18,33 +23,47 @@ public class Combat {
 
     private final List<Robot> roster;
     private final Combattant enemy;
+    private final CombatStrategy enemyStrategy;
+    private final Map<Combattant, Set<Skill>> spentSkills = new HashMap<>();
     private Combattant active;
     private int turn;
 
     /**
-     * Combat en solo. Pas de changement de robot dans ce cas.
+     * Combat en solo. Pas de changement de robot dans ce cas. L'ennemi joue sa première compétence.
      *
      * @param player le combattant du joueur
      * @param enemy l'ennemi
      */
     public Combat(Combattant player, Combattant enemy) {
-        this(List.of(), player, enemy);
+        this(List.of(), player, enemy, new FirstSkillStrategy());
     }
 
     /**
-     * Combat en équipe. Le premier robot disponible commence.
+     * Combat en équipe. Le premier robot disponible commence. L'ennemi joue sa première compétence.
      *
      * @param team l'équipe du joueur
      * @param enemy l'ennemi
      */
     public Combat(Team team, Combattant enemy) {
-        this(team.getRobots(), team.getActive(), enemy);
+        this(team, enemy, new FirstSkillStrategy());
     }
 
-    private Combat(List<Robot> roster, Combattant active, Combattant enemy) {
+    /**
+     * Combat en équipe avec une IA ennemie choisie.
+     *
+     * @param team l'équipe du joueur
+     * @param enemy l'ennemi
+     * @param enemyStrategy le cerveau de l'ennemi
+     */
+    public Combat(Team team, Combattant enemy, CombatStrategy enemyStrategy) {
+        this(team.getRobots(), team.getActive(), enemy, enemyStrategy);
+    }
+
+    private Combat(List<Robot> roster, Combattant active, Combattant enemy, CombatStrategy enemyStrategy) {
         this.roster = roster;
         this.active = active;
         this.enemy = enemy;
+        this.enemyStrategy = Objects.requireNonNull(enemyStrategy);
     }
 
     /**
@@ -60,6 +79,9 @@ public class Combat {
         }
         if (!active.getSkills().contains(skill)) {
             throw new IllegalArgumentException(active.getName() + " does not know " + skill.getName());
+        }
+        if (isSpent(active, skill)) {
+            throw new IllegalStateException(skill.getName() + " was already used in this combat");
         }
         turn++;
         List<String> log = new ArrayList<>();
@@ -133,10 +155,18 @@ public class Combat {
     }
 
     private Skill chooseEnemySkill() {
-        return enemy.getSkills().isEmpty() ? Combattant.STRIKE : enemy.getSkills().get(0);
+        List<Skill> usable = enemy.getSkills().stream().filter(skill -> !isSpent(enemy, skill)).toList();
+        return enemyStrategy.chooseSkill(enemy, usable.isEmpty() ? List.of(Combattant.STRIKE) : usable, active);
+    }
+
+    private boolean isSpent(Combattant fighter, Skill skill) {
+        return spentSkills.getOrDefault(fighter, Set.of()).contains(skill);
     }
 
     private void act(Combattant attacker, Skill skill, Combattant defender, List<String> log) {
+        if (skill.isOncePerCombat()) {
+            spentSkills.computeIfAbsent(attacker, fighter -> new HashSet<>()).add(skill);
+        }
         log.add(skill.apply(attacker, defender));
         if (defender.isKo()) {
             log.add(defender.getName() + " est K.O. !");

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.reboot.model.fighter.Combattant;
+import com.reboot.model.fighter.Exosquelette;
 import com.reboot.model.fighter.HealerBot;
 import com.reboot.model.fighter.InfighterBot;
 import com.reboot.model.fighter.Robot;
@@ -297,6 +298,28 @@ class CombatTest {
             combat.useSkill(Robot.STRIKE);
         }
         assertEquals(0, enemy.getXp());
+    }
+
+    @Test
+    void overload_isUsedOnlyOncePerCombat() {
+        TankBot starter = new TankBot(10);
+        starter.reprogram();
+        Combat combat = new Combat(new Team(starter), new Exosquelette(1),
+                (attacker, usable, target) -> usable.contains(Exosquelette.OVERLOAD) ? Exosquelette.OVERLOAD
+                        : usable.get(0));
+        long overloads = 0;
+        for (int i = 0; i < 3; i++) {
+            overloads += combat.useSkill(TankBot.ARMOR).log().stream()
+                    .filter(line -> line.contains(Exosquelette.OVERLOAD.getName())).count();
+        }
+        assertEquals(1, overloads);
+    }
+
+    @Test
+    void aSpentSkill_cannotBeUsedAgainByThePlayer() {
+        Combat combat = new Combat(new Exosquelette(10), new TankBot(10));
+        combat.useSkill(Exosquelette.OVERLOAD);
+        assertThrows(IllegalStateException.class, () -> combat.useSkill(Exosquelette.OVERLOAD));
     }
 
     private static class Unarmed extends Combattant {

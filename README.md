@@ -74,6 +74,8 @@ Design patterns utilisés :
 - **State** : un robot est détourné, allié ou en réparation (`RobotState`), et son comportement change avec son état.
 - **Observer** : achever ou reprogrammer publie un événement sur l'`EventBus`, et la barre de recherche, le réseau et le stock de pièces réagissent chacun de leur côté.
 - **Factory** : `RobotFactory` crée les ennemis selon la zone et le niveau du réseau.
+- **Strategy** : l'IA ennemie est une `CombatStrategy` (`RandomStrategy` en jeu, `FirstSkillStrategy` par défaut), et `Combat` lui demande sa compétence sans savoir comment elle choisit.
+- **Decorator** : `OncePerCombatSkill` enveloppe une compétence pour qu'elle ne serve qu'une fois par combat, comme la Surcharge des exosquelettes.
 - **Composite** : un chapitre (`QuestGroup`) est lui-même une `Quest` qui regroupe d'autres quêtes.
 - **Template Method** : `MenuView` gère la navigation, et chaque menu ne fournit que ses entrées.
 
