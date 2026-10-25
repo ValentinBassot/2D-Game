@@ -25,9 +25,10 @@ public class Encounter {
      *
      * @param team l'équipe du joueur
      * @param enemy l'ennemi
+     * @param enemyStrategy le cerveau de l'ennemi
      */
-    public Encounter(Team team, Combattant enemy) {
-        this.combat = new Combat(team, enemy);
+    public Encounter(Team team, Combattant enemy, CombatStrategy enemyStrategy) {
+        this.combat = new Combat(team, enemy, enemyStrategy);
     }
 
     /** {@return le combat de la rencontre} */
