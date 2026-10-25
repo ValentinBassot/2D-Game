@@ -17,6 +17,11 @@ public interface Skill {
         return false;
     }
 
+    /** {@return {@code true} si elle ne sert qu'une fois par combat (faux par défaut)} */
+    default boolean isOncePerCombat() {
+        return false;
+    }
+
     /**
      * Applique l'effet de la compétence.
      *
