@@ -1,27 +1,33 @@
 # Diagrammes UML de Reboot
 
-Première version, tirée de la section « Architecture visée » du [GDD](gdd.md). Rien n'est encore codé : ces diagrammes décrivent le modèle à construire, pas un existant. Les noms de classes repris du GDD sont gardés tels quels ; ceux ajoutés ici sont des propositions, listées dans [Points à trancher](#points-à-trancher).
+Ces diagrammes décrivent le code tel qu'il est dans `src/main/java/com/reboot/model`. Ils ont d'abord servi de plan (première version tirée du GDD), puis ont été remis à jour pour correspondre au code réel : mêmes noms de classes, de méthodes et de paquets.
 
-Les diagrammes sont écrits en Mermaid : GitHub les affiche directement, et ils se modifient comme du texte.
+Les diagrammes sont écrits en Mermaid : GitHub les affiche directement, et ils se modifient comme du texte. Pour garder la doc juste, une PR qui ajoute, renomme ou déplace une classe met aussi ce fichier à jour.
 
-| # | Diagramme | Ce qu'il montre | Design pattern |
+Le modèle ne dépend pas de JavaFX : les vues (`com.reboot.view`) et `GameController` lisent le modèle et le pilotent, mais le modèle ne les connaît pas. Tout ce qui est décrit ici se teste avec JUnit sans ouvrir de fenêtre.
+
+| # | Diagramme | Paquet(s) | Design pattern |
 | --- | --- | --- | --- |
-| 1 | [Combattants et compétences](#1-combattants-et-compétences) | Héritage des robots, compétences | Héritage, polymorphisme |
-| 2 | [États d'un robot](#2-états-dun-robot) | Détourné, Allié, En réparation | State |
-| 3 | [Combat](#3-combat) | Tour par tour, IA ennemie, dégâts | Strategy |
-| 4 | [Conséquences du choix](#4-conséquences-du-choix) | Réseau, barre de recherche, pièces | Observer |
-| 5 | [Joueur et monde](#5-joueur-et-monde) | Équipe, Home, zones, rencontres | Composition, Factory |
-| 6 | [Séquence : un tour de combat](#6-séquence--un-tour-de-combat) | Qui appelle qui pendant un tour | Aucun |
-| 7 | [Séquence : reprogrammer ou achever](#7-séquence--reprogrammer-ou-achever) | La scène phare du POC | State + Observer |
-| 8 | [Enchaînement des écrans](#8-enchaînement-des-écrans) | La boucle de jeu | Aucun |
+| 1 | [Combattants et compétences](#1-combattants-et-compétences) | `fighter`, `skill` | Héritage, polymorphisme, Decorator |
+| 2 | [États d'un robot](#2-états-dun-robot) | `fighter` | State |
+| 3 | [Combat](#3-combat) | `combat` | Strategy |
+| 4 | [Conséquences du choix](#4-conséquences-du-choix) | `event`, `nexus`, `team`, `game` | Observer |
+| 5 | [Partie, équipe et monde](#5-partie-équipe-et-monde) | `game`, `team`, `world`, `fighter` | Composition, Factory |
+| 6 | [Quêtes et campagne](#6-quêtes-et-campagne) | `quest` | Composite |
+| 7 | [Réglages et souvenirs](#7-réglages-et-souvenirs) | `settings`, `story` | Aucun |
+| 8 | [Séquence : un tour de combat](#8-séquence--un-tour-de-combat) | `combat`, `skill` | Strategy |
+| 9 | [Séquence : reprogrammer ou achever](#9-séquence--reprogrammer-ou-achever) | `game`, `event` | State + Observer |
+| 10 | [Enchaînement des écrans](#10-enchaînement-des-écrans) | `view` | Template Method |
 
 ## 1. Combattants et compétences
 
-`Combattant` porte ce qui est commun à tout ce qui se bat : stats, PV, compétences. Les stats se calculent à partir des stats de base et du niveau (+ 10 % de la base par niveau).
+`Combattant` porte ce qui est commun à tout ce qui se bat : stats, PV, XP, compétences. Les stats se calculent à partir des stats de base et du niveau (+ 10 % de la base par niveau). Les robots et les exosquelettes connaissent tous la Frappe (`Combattant.STRIKE`) : `Robot` et `Exosquelette` l'ajoutent à leurs compétences.
 
-Deux branches en héritent. Les `Robot` ont un état et peuvent être reprogrammés. Les `Exosquelette` sont pilotés par des humains : `canBeReprogrammed()` renvoie `false`. Le chef de NEXUS est un `Boss`, un exosquelette particulier qui redéfinit `getLevel()` pour renvoyer son niveau fixe : c'est l'exemple de polymorphisme du GDD.
+Deux branches en héritent. Les `Robot` ont un type et un état, et peuvent être reprogrammés. Les `Exosquelette` sont pilotés par des humains : `isReprogrammable()` renvoie `false`. Le chef de NEXUS est un `Boss`, un exosquelette créé au niveau fixe `FIXED_LEVEL` (10), qui redéfinit `endsTheGame()` pour terminer la partie quand il est vaincu.
 
-Chaque compétence est un objet `Skill` : en ajouter une ne demande de toucher à aucune classe de robot.
+Le polymorphisme est partout : `isReprogrammable()` et `getSpriteId()` sont abstraites dans `Combattant` et chaque branche répond à sa façon ; `advantageAgainst()` et `weaknessTo()` ne donnent le bonus de type × 1,5 qu'entre robots, sans aucun `instanceof`.
+
+Chaque compétence est un objet `Skill` qui applique son propre effet dans `apply()` : en ajouter une ne demande de toucher à aucune classe de robot. `OncePerCombatSkill` est un Decorator : il enveloppe n'importe quelle compétence pour la rendre utilisable une seule fois par combat (la Surcharge des exosquelettes).
 
 ```mermaid
 classDiagram
@@ -29,54 +35,85 @@ classDiagram
 
     class Combattant {
         <<abstract>>
-        #String name
-        #int level
-        #int hp
-        #BaseStats baseStats
+        +DamageSkill STRIKE$
+        +int XP_PER_LEVEL$
+        +int XP_REWARD_PER_LEVEL$
+        -String name
+        -int level
+        -int xp
+        -int hp
+        -int baseHp
+        -int baseAtk
+        -int baseDef
+        -int baseSpeed
+        -int defenseMultiplier
+        -List~Skill~ skills
+        +gainXp(int amount) int
+        +getXpToNextLevel() int
+        +getXpReward() int
+        +takeDamage(int amount) void
+        +heal(int amount) void
+        +isKo() boolean
+        +isReprogrammable()* boolean
+        +getSpriteId()* String
+        +endsTheGame() boolean
+        +advantageAgainst(Combattant defender) double
+        #weaknessTo(RobotType attackerType) double
+        +boostDefense(int multiplier, int turns) void
+        +endTurn() void
+        #addSkill(Skill skill) void
+        +getSkills() List~Skill~
         +getLevel() int
         +getMaxHp() int
         +getAtk() int
         +getDef() int
         +getSpeed() int
-        +getSkills() List~Skill~
-        +takeDamage(int amount) void
-        +heal(int amount) void
-        +isKo() boolean
-        +canBeReprogrammed() boolean*
-    }
-
-    class BaseStats {
-        <<record>>
-        +int hp
-        +int atk
-        +int def
-        +int speed
     }
 
     class Robot {
         <<abstract>>
+        -RobotType type
         -RobotState state
-        -int xp
-        +getType() RobotType*
+        +getType() RobotType
+        +getSpriteId() String
+        +advantageAgainst(Combattant defender) double
+        #weaknessTo(RobotType attackerType) double
+        +isReprogrammable() boolean
+        +canFightForPlayer() boolean
         +reprogram() void
-        +knockOut() void
-        +gainXp(int amount) void
-        +canFight() boolean
-        +canBeReprogrammed() boolean
+        +handleKnockOut() void
     }
 
-    class TankBot
-    class HealerBot
-    class InfighterBot
+    class TankBot {
+        +DefenseBoostSkill ARMOR$
+        +DamageSkill CRUSH$
+        +TankBot(int level)
+    }
+
+    class HealerBot {
+        +HealSkill NETWORK_PATCH$
+        +DamageSkill CORROSIVE_NANOBOTS$
+        +HealerBot(int level)
+    }
+
+    class InfighterBot {
+        +DamageSkill FLURRY$
+        +DamageSkill HOOK$
+        +InfighterBot(int level)
+    }
 
     class Exosquelette {
-        -boolean overloadUsed
-        +canBeReprogrammed() boolean
+        +Skill OVERLOAD$
+        +Exosquelette(int level)
+        +isReprogrammable() boolean
+        +getSpriteId() String
     }
 
     class Boss {
-        -int fixedLevel
-        +getLevel() int
+        +int FIXED_LEVEL$
+        +Boss()
+        +getSpriteId() String
+        +endsTheGame() boolean
     }
 
     class RobotType {
@@ -84,7 +121,9 @@ classDiagram
         TANK
         HEALER
         INFIGHTER
+        +double ADVANTAGE_BONUS$
         +beats(RobotType other) boolean
+        +multiplierAgainst(RobotType other) double
     }
 
     class Skill {
@@ -92,26 +131,40 @@ classDiagram
         +getName() String
         +hasPriority() boolean
         +isOncePerCombat() boolean
-        +apply(Combat combat, Combattant user, Combattant target) void
+        +apply(Combattant user, Combattant target) String
+    }
+
+    class DamageSkill {
+        -String name
+        -int power
+        -boolean ignoresDefense
+        -boolean priority
+        +getPower() int
+        +ignoresDefense() boolean
+    }
+
+    class HealSkill {
+        -String name
+        -int amount
+        +getAmount() int
+    }
+
+    class DefenseBoostSkill {
+        -String name
+        -int multiplier
+        -int turns
+        +getMultiplier() int
+        +getTurns() int
     }
 
     class OncePerCombatSkill {
         -Skill skill
+        +isOncePerCombat() boolean
     }
 
-    class DamageSkill {
-        -int power
-        -boolean ignoresDefense
-        -boolean priority
-    }
-
-    class TeamHealSkill {
-        -int amount
-    }
-
-    class DefenseBoostSkill {
-        -int multiplier
-        -int turns
+    class DamageCalculator {
+        <<utility>>
+        +compute(Combattant attacker, Combattant defender, int power, boolean ignoresDefense)$ int
     }
 
     Combattant <|-- Robot
@@ -120,30 +173,32 @@ classDiagram
     Robot <|-- HealerBot
     Robot <|-- InfighterBot
     Exosquelette <|-- Boss
-    Combattant *-- BaseStats
-    Combattant o-- "1..3" Skill
-    Robot --> RobotType
+    Combattant o-- "2..3" Skill
+    Robot --> "1" RobotType
     Skill <|.. DamageSkill
-    Skill <|.. TeamHealSkill
+    Skill <|.. HealSkill
     Skill <|.. DefenseBoostSkill
     Skill <|.. OncePerCombatSkill
     OncePerCombatSkill o-- "1" Skill : enveloppe
+    DamageSkill ..> DamageCalculator
 ```
 
 Correspondance avec les compétences du GDD :
 
 | Compétence | Classe | Réglage |
 | --- | --- | --- |
-| Frappe, Écrasement, Rafale de coups | `DamageSkill` | puissance 10, 16, 16 |
+| Frappe (`Combattant.STRIKE`), Écrasement, Rafale de coups | `DamageSkill` | puissance 10, 16, 16 |
 | Nanobots corrosifs | `DamageSkill` | puissance 12, `ignoresDefense` |
 | Crochet | `DamageSkill` | puissance 12, `priority` |
-| Surcharge (exosquelettes) | `OncePerCombatSkill` autour d'un `DamageSkill` | puissance 18, une fois par combat |
-| Patch réseau | `TeamHealSkill` | 15 PV à toute l'équipe active |
+| Surcharge (`Exosquelette.OVERLOAD`) | `OncePerCombatSkill` autour d'un `DamageSkill` | puissance 18, une fois par combat |
+| Patch réseau | `HealSkill` | 15 PV |
 | Blindage | `DefenseBoostSkill` | DEF × 2 pendant 2 tours |
+
+`DamageCalculator.compute()` applique la formule du GDD : `max(1, puissance + ATK − DEF)`, la DEF étant ignorée si la compétence le permet, puis × 1,5 arrondi à l'entier inférieur si le type de l'attaquant bat celui du défenseur.
 
 ## 2. États d'un robot
 
-Un ennemi et un allié sont la même classe `Robot` : seul son état change. `Robot` délègue à son `RobotState` tout ce qui dépend de l'état, au lieu d'empiler des `if`.
+Un ennemi et un allié sont la même classe `Robot` : seul son état change. `Robot` délègue à son `RobotState` tout ce qui dépend de l'état, au lieu d'empiler des `if`. Chaque événement (`onReprogram`, `onKnockOut`…) renvoie l'état suivant ; une transition interdite (reprogrammer un allié) lance une `IllegalStateException`.
 
 ```mermaid
 classDiagram
@@ -152,27 +207,35 @@ classDiagram
     class Robot {
         <<abstract>>
         -RobotState state
+        +getState() RobotState
+        +canFightForPlayer() boolean
+        +isReprogrammable() boolean
+        +isUnderRepair() boolean
+        +getRepairVictoriesLeft() int
         +reprogram() void
-        +knockOut() void
-        +canFight() boolean
-        ~setState(RobotState next) void
+        +handleKnockOut() void
+        +recordTeamVictory() void
+        +useRepairPart() void
     }
 
     class RobotState {
         <<interface>>
-        +isHostile() boolean
-        +canFight() boolean
-        +onReprogram(Robot robot) void
-        +onKnockOut(Robot robot) void
-        +onBattleWon(Robot robot) void
+        +canFightForPlayer() boolean
+        +isReprogrammable() boolean
+        +isUnderRepair() boolean
+        +onReprogram() RobotState
+        +onKnockOut() RobotState
+        +onTeamVictory() RobotState
+        +onPartUsed() RobotState
     }
 
     class HijackedState
     class AllyState
 
     class RepairingState {
+        +int VICTORIES_TO_REPAIR$
         -int victoriesLeft
-        +usePart(Robot robot) void
+        +getVictoriesLeft() int
     }
 
     Robot o-- "1" RobotState
@@ -187,22 +250,22 @@ Les transitions entre états :
 stateDiagram-v2
     direction LR
 
-    state "Détourné" as Hijacked
-    state "Allié" as Ally
-    state "En réparation" as Repairing
+    state "Détourné (HijackedState)" as Hijacked
+    state "Allié (AllyState)" as Ally
+    state "En réparation (RepairingState)" as Repairing
 
-    [*] --> Hijacked : rencontre créée par RobotFactory
+    [*] --> Hijacked : robot créé par RobotFactory
     [*] --> Ally : robot de départ de Léon
-    Hijacked --> Ally : reprogrammer
+    Hijacked --> Ally : reprogram()
     Hijacked --> [*] : achever
-    Ally --> Repairing : K.O. en combat
-    Repairing --> Repairing : victoire ou pièce dépensée (délai − 1)
+    Ally --> Repairing : handleKnockOut()
+    Repairing --> Repairing : recordTeamVictory() ou useRepairPart() (délai − 1)
     Repairing --> Ally : délai à 0 (3 victoires au départ)
 ```
 
 ## 3. Combat
 
-`Combat` ne connaît ni JavaFX ni la carte : il se teste seul. `Encounter` crée le combat et en tire un `EncounterResult` : le choix reprogrammer / achever n'est proposé qu'après une victoire contre un ennemi reprogrammable. `CombatLauncher` est la frontière entre l'exploration et le combat.
+`Combat` ne connaît ni JavaFX ni la carte : il se teste seul. `Encounter` crée le combat et en tire un `EncounterResult` : le choix reprogrammer / achever n'est proposé qu'après une victoire contre un ennemi reprogrammable (`isReprogrammable()`, polymorphe). `CombatLauncher` est la frontière entre l'exploration et le combat : `GameController` l'implémente.
 
 L'IA ennemie suit le pattern Strategy : `Combat` demande sa compétence à une `CombatStrategy` sans savoir comment elle décide. `FirstSkillStrategy` (toujours la première compétence) est la stratégie par défaut ; en jeu, `GameController` donne une `RandomStrategy`, qui reçoit son générateur aléatoire par le constructeur pour que les tests soient reproductibles. `Combat` ne donne à la stratégie que les compétences encore utilisables : une compétence à usage unique (`isOncePerCombat()`) déjà lancée, comme la Surcharge, en est retirée.
 
@@ -217,6 +280,8 @@ classDiagram
 
     class Encounter {
         -Combat combat
+        +Encounter(Combattant player, Combattant enemy)
+        +Encounter(Team team, Combattant enemy, CombatStrategy enemyStrategy)
         +getCombat() Combat
         +isFinished() boolean
         +getResult() EncounterResult
@@ -236,12 +301,19 @@ classDiagram
         -CombatStrategy enemyStrategy
         -Map spentSkills
         -int turn
+        +Combat(Combattant player, Combattant enemy)
+        +Combat(Team team, Combattant enemy)
+        +Combat(Team team, Combattant enemy, CombatStrategy enemyStrategy)
         +useSkill(Skill skill) TurnResult
         +switchTo(Robot next) TurnResult
         +getSwitchOptions() List~Robot~
         +mustSwitch() boolean
         +isOver() boolean
         +getOutcome() CombatOutcome
+        +getRoster() List~Robot~
+        +getTurn() int
+        +getPlayer() Combattant
+        +getEnemy() Combattant
     }
 
     class CombatStrategy {
@@ -253,13 +325,11 @@ classDiagram
 
     class RandomStrategy {
         -Random random
+        +RandomStrategy(Random random)
     }
 
     class Skill {
         <<interface>>
-        +getName() String
-        +hasPriority() boolean
-        +isOncePerCombat() boolean
         +apply(Combattant user, Combattant target) String
     }
 
@@ -288,11 +358,13 @@ classDiagram
     CombatStrategy <|.. RandomStrategy
 ```
 
-`Combat` ne calcule plus les dégâts lui-même : il appelle `Skill.apply()`, et chaque compétence applique son effet (section 1). `DamageCalculator.compute()` garde la formule du GDD : `max(1, puissance + ATK − DEF)`, puis × 1,5 arrondi à l'entier inférieur si le type de l'attaquant bat celui du défenseur. `OffensiveStrategy` (IA offensive selon la barre de recherche) reste un bonus COULD, non codé.
+`Combat` ne calcule pas les dégâts lui-même : il appelle `Skill.apply()`, et chaque compétence applique son effet (section 1). Quand l'ennemi tombe, le robot qui l'a mis K.O. gagne de l'XP (`gainXp()`). `OffensiveStrategy` (IA offensive selon la barre de recherche) reste un bonus COULD, non codé.
 
 ## 4. Conséquences du choix
 
-Reprogrammer, achever ou neutraliser un pilote publie un événement : la barre de recherche bouge dans les trois cas, donc il y a trois événements. Ceux qui en dépendent s'abonnent : le code du combat et de l'écran de choix ne connaît ni le réseau, ni la barre de recherche, ni le stock de pièces.
+Reprogrammer ou achever (`ChoiceResolver`) et neutraliser un pilote (`Game.onCombatEnd()`) publient chacun un événement sur l'`EventBus` : la barre de recherche bouge dans les trois cas, donc il y a trois événements. Ceux qui en dépendent s'abonnent : `ChoiceResolver` et le combat ne connaissent ni le réseau, ni la barre de recherche, ni le stock de pièces.
+
+Chaque événement sait à quelle méthode de l'abonné il correspond (`dispatchTo()`) : l'`EventBus` n'a donc aucun `if` sur le type d'événement. `GameEventListener` a une méthode par événement, et chaque abonné ne redéfinit que celles qui l'intéressent.
 
 ```mermaid
 classDiagram
@@ -300,6 +372,7 @@ classDiagram
 
     class GameEvent {
         <<interface>>
+        +dispatchTo(GameEventListener listener) void
     }
 
     class RobotKilledEvent {
@@ -314,12 +387,14 @@ classDiagram
 
     class PilotNeutralizedEvent {
         <<record>>
-        +Exosquelette exosquelette
+        +Combattant exosquelette
     }
 
     class GameEventListener {
         <<interface>>
-        +onEvent(GameEvent event) void
+        +onRobotKilled(RobotKilledEvent event) void
+        +onRobotReprogrammed(RobotReprogrammedEvent event) void
+        +onPilotNeutralized(PilotNeutralizedEvent event) void
     }
 
     class EventBus {
@@ -328,12 +403,33 @@ classDiagram
         +publish(GameEvent event) void
     }
 
+    class ChoiceResolver {
+        +ChoiceResolver(Game game)
+        +previewReprogram(Robot robot) String
+        +previewFinish(Robot robot) String
+        +reprogram(Robot robot) ChoiceOutcome
+        +finish(Robot robot) ChoiceOutcome
+    }
+
+    class ChoiceOutcome {
+        <<record>>
+        +boolean reprogrammed
+        +List~String~ lines
+    }
+
     class DataCenter {
+        +int MAX_BONUS$
+        +int KILLS_PER_LEVEL$
         -int robotsKilled
+        +getRobotsKilled() int
         +getNetworkBonus() int
     }
 
     class WantedBar {
+        +int MAX$
+        +int KILL$
+        +int PILOT$
+        +int REPROGRAM$
         -int value
         +getValue() int
         +getTier() WantedTier
@@ -345,123 +441,333 @@ classDiagram
         SPOTTED
         HUNTED
         PUBLIC_ENEMY
+        +of(int value)$ WantedTier
+        +getLabel() String
+        +getThreshold() int
     }
 
     class PartsStock {
         -int parts
+        +partsFor(Robot robot)$ int
+        +repair(Robot robot) boolean
         +getParts() int
-        +spend(int amount) boolean
     }
 
     GameEvent <|.. RobotKilledEvent
     GameEvent <|.. RobotReprogrammedEvent
     GameEvent <|.. PilotNeutralizedEvent
+    GameEvent ..> GameEventListener : dispatchTo()
     EventBus o-- "*" GameEventListener
     EventBus ..> GameEvent : publie
+    ChoiceResolver ..> EventBus : publie
+    Game ..> EventBus : publie (pilote)
+    ChoiceResolver ..> ChoiceOutcome : renvoie
     GameEventListener <|.. DataCenter
     GameEventListener <|.. WantedBar
     GameEventListener <|.. PartsStock
-    WantedBar --> WantedTier
+    WantedBar ..> WantedTier
 ```
 
 | Événement | `DataCenter` | `WantedBar` | `PartsStock` |
 | --- | --- | --- | --- |
-| `RobotKilledEvent` | robots achevés + 1 | + 15 | + (1 + niveau / 3) pièces |
+| `RobotKilledEvent` | robots achevés + 1 | + 15 | + `partsFor(robot)` pièces (1 + niveau / 3) |
 | `RobotReprogrammedEvent` | Aucun effet | − 5 | Aucun effet |
 | `PilotNeutralizedEvent` | Aucun effet | + 10 | Aucun effet |
 
-Le bonus du réseau vaut `min(5, robotsAchevés / 3)`, et la barre reste entre 0 et 100.
+Le bonus du réseau vaut `min(MAX_BONUS, robotsAchevés / KILLS_PER_LEVEL)`, soit `min(5, robotsAchevés / 3)`, et la barre reste entre 0 et 100. Ses paliers : Inconnu (0), Repéré (25), Traqué (50), Ennemi public (75).
 
-## 5. Joueur et monde
+## 5. Partie, équipe et monde
 
-`Player` possède sa `Team` (3 robots au plus) ; la `Home` stocke les autres et répare les K.O. `RobotFactory` crée les rencontres d'une zone, au niveau `zone + bonus du réseau`.
+`Game` est le point d'entrée du modèle : il possède l'équipe, la Home, la campagne et les abonnés de l'`EventBus`, et réagit à la fin de chaque combat (`onCombatEnd()`). Les zones ne sont pas des objets : ce sont des numéros (`Campaign.HOME`, `RESIDENTIAL`, `INDUSTRIAL`, `DATA_CENTER`).
+
+`Team` contient 3 robots au plus ; la `Home` stocke les autres et les échange avec l'équipe. `RobotFactory` est le seul endroit qui fabrique les robots des rencontres, au niveau de la zone plus le bonus du réseau (`encounterLevel()`).
+
+Côté monde, `TileMap` est chargée depuis un fichier texte ; `Player` s'y déplace case par case, et `EncounterTrigger` décide si une case de rencontre lance un combat (avec un `Random` injecté). C'est `GameController` qui relie le monde et la partie.
 
 ```mermaid
 classDiagram
     direction TB
 
-    class Game {
-        -Zone currentZone
-        +enterZone(Zone zone) void
-        +loadDemoSave() void
+    class QuestContext {
+        <<interface>>
     }
 
-    class Player {
-        -int x
-        -int y
-        +move(Direction direction) void
+    class Game {
+        +int STARTER_LEVEL$
+        -Team team
+        -Home home
+        -Campaign campaign
+        -int currentZone
+        -EventBus events
+        -WantedBar wantedBar
+        -DataCenter dataCenter
+        -PartsStock parts
+        -GameStatus status
+        +Game(Team team)
+        +newGame()$ Game
+        +onCombatEnd(EncounterResult result) void
+        +enterZone(int zone) void
+        +isZoneUnlocked(int zone) boolean
+        +canChallengeChief(int zone) boolean
+        +canChallengeBoss() boolean
+        +restAtHome() void
+        +isOver() boolean
+        +getStatus() GameStatus
+    }
+
+    class GameStatus {
+        <<enumeration>>
     }
 
     class Team {
-        +MAX_SIZE int$
+        +int MAX_SIZE$
         -List~Robot~ robots
-        -Robot active
+        +Team(Robot starter)
         +add(Robot robot) boolean
-        +remove(Robot robot) void
+        +replace(Robot out, Robot in) void
         +isFull() boolean
+        +getRobots() List~Robot~
+        +getActive() Robot
+        +getTeamLevel() int
+        +getWeakest() Robot
         +hasFighterLeft() boolean
+        +isAllUnderRepair() boolean
+        +recordVictory() void
+        +sendKnockedOutToRepair() void
         +healAll() void
     }
 
     class Home {
         -List~Robot~ stored
         +store(Robot robot) void
-        +swap(Robot fromTeam, Robot fromHome) void
-        +healTeam(Team team) void
-    }
-
-    class Zone {
-        -String name
-        -int level
-        -List~RobotType~ dominantTypes
-        -boolean unlocked
-        +unlock() void
-    }
-
-    class TileMap {
-        -Tile[][] tiles
-        +load(String path) TileMap$
-        +tileAt(int x, int y) Tile
-        +isWalkable(int x, int y) boolean
-    }
-
-    class Tile {
-        <<enumeration>>
-        GROUND
-        WALL
-        ENCOUNTER
-        STATION
-        PORTAL
+        +swap(Team team, Robot fromTeam, Robot fromHome) void
+        +sendToTeam(Team team, Robot robot) boolean
+        +fillTeam(Team team) void
+        +recordVictory() void
+        +hasNoFighter() boolean
+        +getStored() List~Robot~
     }
 
     class RobotFactory {
         -Random random
-        +createEncounter(Zone zone, DataCenter dataCenter) Robot
-        +createZoneBoss(Zone zone) Exosquelette
-        +createStarter() Robot
+        +RobotFactory(Random random)
+        +encounterLevel(int zoneLevel, int networkBonus)$ int
+        +create(RobotType type, int level) Robot
+        +createEncounter(List~RobotType~ dominantTypes, int level) Robot
     }
 
-    Game *-- "1" Player
+    class TileMap {
+        +char SPAWN_SYMBOL$
+        +int NO_PORTAL$
+        -Tile[][] tiles
+        +load(String path)$ TileMap
+        +parse(List~String~ rows)$ TileMap
+        +getWidth() int
+        +getHeight() int
+        +getSpawnX() int
+        +getSpawnY() int
+        +contains(int x, int y) boolean
+        +tileAt(int x, int y) Tile
+        +isWalkable(int x, int y) boolean
+        +portalZoneAt(int x, int y) int
+    }
+
+    class Tile {
+        <<enumeration>>
+        +isWalkable() boolean
+        +fromSymbol(char symbol)$ Tile
+    }
+
+    class Player {
+        -int x
+        -int y
+        -Direction facing
+        +Player(int x, int y)
+        +move(Direction direction, TileMap map) boolean
+        +getX() int
+        +getY() int
+        +getFacing() Direction
+    }
+
+    class Direction {
+        <<enumeration>>
+        +getDx() int
+        +getDy() int
+    }
+
+    class EncounterTrigger {
+        -Random random
+        -int oneIn
+        +EncounterTrigger(Random random, int oneIn)
+        +shouldTrigger(Tile tile) boolean
+    }
+
+    QuestContext <|.. Game
+    Game *-- "1" Team
     Game *-- "1" Home
-    Game *-- "4" Zone : Home + 3 zones
-    Game *-- "1" DataCenter
-    Game *-- "1" WantedBar
-    Game *-- "1" PartsStock
+    Game *-- "1" Campaign
     Game *-- "1" EventBus
-    Player *-- "1" Team
-    Team o-- "0..3" Robot
+    Game *-- "1" WantedBar
+    Game *-- "1" DataCenter
+    Game *-- "1" PartsStock
+    Game --> GameStatus
+    Team o-- "1..3" Robot
     Home o-- "*" Robot
-    Zone *-- "1" TileMap
-    TileMap --> Tile
-    Zone ..> RobotFactory : rencontres
     RobotFactory ..> Robot : crée
-    RobotFactory ..> Exosquelette : crée
-    RobotFactory ..> DataCenter : lit le bonus
+    TileMap --> Tile
+    Player ..> TileMap : se déplace sur
+    Player --> Direction
+    EncounterTrigger ..> Tile
 ```
 
-## 6. Séquence : un tour de combat
+## 6. Quêtes et campagne
 
-Le joueur choisit une compétence. Le plus rapide joue en premier, sauf si une compétence est prioritaire (Crochet).
+La progression suit le pattern Composite : une `QuestGroup` (un chapitre) est elle-même une `Quest`, faite d'autres quêtes. La vue des quêtes affiche un chapitre et une quête simple de la même façon, sans savoir laquelle elle a en main.
+
+Les quêtes ne connaissent pas `Game` : elles lisent la partie à travers l'interface `QuestContext` (victoires par zone, taille et niveau de l'équipe, chefs vaincus…), que `Game` implémente. `Campaign` décide quelles zones sont débloquées et quand on peut défier un chef ou le boss. Le data center est gardé par `DISCREET_GUARDS` (1) garde tant que la barre de recherche reste sous `DISCREET_ENTRY_LIMIT` (75), et par `MAIN_GUARDS` (3) au-delà (`guardsFor()`).
+
+```mermaid
+classDiagram
+    direction TB
+
+    class Quest {
+        <<interface>>
+        +getDescription() String
+        +getProgress(QuestContext context) int
+        +getTarget(QuestContext context) int
+    }
+
+    class QuestContext {
+        <<interface>>
+    }
+
+    class QuestGroup {
+        -String title
+        -List~Quest~ quests
+        +QuestGroup(String title, List~Quest~ quests)
+        +isGuardianOpen(QuestContext context) boolean
+        +getQuests() List~Quest~
+    }
+
+    class WinsQuest {
+        +WinsQuest(int zone, String zoneName, int target)
+    }
+
+    class TeamSizeQuest {
+        +TeamSizeQuest(int target)
+    }
+
+    class TeamLevelQuest {
+        +TeamLevelQuest(int target)
+    }
+
+    class GuardsQuest {
+        +GuardsQuest(int zone)
+    }
+
+    class ChiefQuest {
+        +ChiefQuest(int zone)
+    }
+
+    class BossQuest {
+        +BossQuest()
+    }
+
+    class Campaign {
+        +int HOME$
+        +int RESIDENTIAL$
+        +int INDUSTRIAL$
+        +int DATA_CENTER$
+        +int DISCREET_ENTRY_LIMIT$
+        +int DISCREET_GUARDS$
+        +int MAIN_GUARDS$
+        +int WINS_PER_ZONE$
+        +int RESIDENTIAL_TEAM_LEVEL$
+        +int INDUSTRIAL_TEAM_LEVEL$
+        +guardsFor(int wanted)$ int
+        +getChapters() List~QuestGroup~
+        +isUnlocked(int zone, QuestContext context) boolean
+        +canChallengeChief(int zone, QuestContext context) boolean
+        +canChallengeBoss(QuestContext context) boolean
+        +current(QuestContext context) Optional~QuestGroup~
+    }
+
+    Quest <|.. QuestGroup
+    Quest <|.. WinsQuest
+    Quest <|.. TeamSizeQuest
+    Quest <|.. TeamLevelQuest
+    Quest <|.. GuardsQuest
+    Quest <|.. ChiefQuest
+    Quest <|.. BossQuest
+    QuestGroup o-- "*" Quest : chapitre
+    Campaign *-- "*" QuestGroup
+    Quest ..> QuestContext : lit
+    Campaign ..> QuestContext : lit
+```
+
+## 7. Réglages et souvenirs
+
+Les réglages du joueur (taille de fenêtre, plein écran, luminosité, touches) sont un modèle à part, enregistré sous forme de `Properties`. `MemoryBook` charge les souvenirs des robots depuis un fichier texte et en tire un au hasard selon le type du robot, pour l'écran de choix.
+
+```mermaid
+classDiagram
+    direction TB
+
+    class Settings {
+        +List~WindowSize~ WINDOW_SIZES$
+        +int MIN_BRIGHTNESS$
+        +int MAX_BRIGHTNESS$
+        -int windowSizeIndex
+        -boolean fullscreen
+        -int brightness
+        -KeyBindings keys
+        +cycleWindowSize(int delta) void
+        +adjustBrightness(int delta) void
+        +setFullscreen(boolean fullscreen) void
+        +getWindowSize() WindowSize
+        +isFullscreen() boolean
+        +getBrightness() int
+        +getKeys() KeyBindings
+        +toProperties() Properties
+        +fromProperties(Properties properties)$ Settings
+    }
+
+    class KeyBindings {
+        +keyOf(Action action) String
+        +actionOf(String key) Optional~Action~
+        +bind(Action action, String key) void
+        +resetToDefaults() void
+    }
+
+    class Action {
+        <<enumeration>>
+        +getLabel() String
+    }
+
+    class WindowSize {
+        <<record>>
+        +int width
+        +int height
+        +label() String
+    }
+
+    class MemoryBook {
+        +String DEFAULT_PATH$
+        +load(String path)$ MemoryBook
+        +parse(List~String~ lines)$ MemoryBook
+        +pick(RobotType type, Random random) String
+        +count(RobotType type) int
+    }
+
+    Settings *-- "1" KeyBindings
+    Settings ..> WindowSize
+    KeyBindings ..> Action
+    MemoryBook ..> RobotType
+```
+
+## 8. Séquence : un tour de combat
+
+Le joueur choisit une compétence. Le plus rapide joue en premier, sauf si une compétence est prioritaire (Crochet). Si le premier met l'autre K.O., il n'y a pas de riposte.
 
 ```mermaid
 sequenceDiagram
@@ -469,6 +775,7 @@ sequenceDiagram
     participant Vue as CombatView (JavaFX)
     participant Combat
     participant IA as CombatStrategy
+    participant Skill as Skill
     participant Calc as DamageCalculator
     participant Allie as Robot actif
     participant Ennemi as Combattant ennemi
@@ -479,25 +786,29 @@ sequenceDiagram
     IA-->>Combat: compétence ennemie
     Note over Combat: ordre du tour : priorité, puis VIT
 
-    Combat->>Calc: compute(robot actif, ennemi, puissance)
-    Calc-->>Combat: dégâts
-    Combat->>Ennemi: takeDamage(dégâts)
+    Combat->>Skill: apply(premier, second)
+    Skill->>Calc: compute(attaquant, défenseur, puissance, ignoresDefense)
+    Calc-->>Skill: dégâts
+    Skill->>Ennemi: takeDamage(dégâts)
+    Skill-->>Combat: ligne du journal
 
-    alt l'ennemi est encore debout
-        Combat->>Calc: compute(ennemi, robot actif, puissance)
-        Calc-->>Combat: dégâts
-        Combat->>Allie: takeDamage(dégâts)
-        opt le robot actif est K.O.
-            Combat->>Allie: knockOut()
-            Note over Allie: passe en RepairingState
-        end
+    alt le second est encore debout
+        Combat->>Skill: apply(second, premier)
+        Skill->>Allie: takeDamage(dégâts)
+        Skill-->>Combat: ligne du journal
+    else l'ennemi est K.O.
+        Combat->>Allie: gainXp(xp)
     end
 
+    Combat->>Allie: endTurn()
+    Combat->>Ennemi: endTurn()
     Combat-->>Vue: TurnResult (journal, combat fini ?)
     Vue-->>Joueur: PV et journal mis à jour
 ```
 
-## 7. Séquence : reprogrammer ou achever
+À la fin du combat, `Game.onCombatEnd()` enregistre la victoire ou la défaite ; les robots K.O. de l'équipe passent en réparation (`Team.sendKnockedOutToRepair()`, donc `handleKnockOut()` et le State de la section 2).
+
+## 9. Séquence : reprogrammer ou achever
 
 La scène phare : après une victoire contre un robot, le joueur choisit. Les deux branches montrent le State (le robot change d'état) et l'Observer (les conséquences se propagent seules).
 
@@ -514,7 +825,9 @@ sequenceDiagram
     participant Barre as WantedBar
     participant Pieces as PartsStock
 
-    Vue-->>Joueur: souvenir du robot, glitch rouge et bleu
+    Vue->>Choix: previewReprogram(robot) / previewFinish(robot)
+    Choix-->>Vue: aperçu des conséquences
+    Vue-->>Joueur: souvenir du robot (MemoryBook) et aperçu
 
     alt Reprogrammer
         Joueur->>Vue: bouton Reprogrammer
@@ -523,64 +836,79 @@ sequenceDiagram
         Note over Robot: HijackedState devient AllyState
         alt l'équipe a une place
             Choix->>Equipe: add(robot)
+        else l'équipe est pleine, le robot a un niveau plus haut que le plus faible
+            Choix->>Equipe: replace(plus faible, robot)
+            Choix->>Home: store(plus faible)
         else l'équipe est pleine
             Choix->>Home: store(robot)
         end
         Choix->>Bus: publish(RobotReprogrammedEvent)
-        Bus->>Barre: onEvent, barre − 5
+        Bus->>Barre: onRobotReprogrammed, barre − 5
     else Achever
         Joueur->>Vue: bouton Achever
         Vue->>Choix: finish(robot)
         Choix->>Bus: publish(RobotKilledEvent)
-        Bus->>DC: onEvent, robots achevés + 1
-        Bus->>Barre: onEvent, barre + 15
-        Bus->>Pieces: onEvent, + (1 + niveau / 3) pièces
+        Bus->>DC: onRobotKilled, robots achevés + 1
+        Bus->>Barre: onRobotKilled, barre + 15
+        Bus->>Pieces: onRobotKilled, + partsFor(robot) pièces
     end
 
-    Choix-->>Vue: conséquences à afficher
+    Choix-->>Vue: ChoiceOutcome (lignes à afficher)
     Vue-->>Joueur: retour à l'exploration
 ```
 
-## 8. Enchaînement des écrans
+## 10. Enchaînement des écrans
 
-La boucle de jeu du GDD, vue comme une suite d'écrans.
+La boucle de jeu, vue comme une suite d'écrans. Chaque écran est une vue de `com.reboot.view` ; `GameController` passe de l'une à l'autre. Options et Quêtes reviennent à l'écran d'où on les a ouverts.
+
+`MenuView` n'est pas un écran : c'est la classe abstraite dont héritent `MainMenuView`, `PauseView`, `QuestsView`, `OptionsView` et `HomeView` (pattern Template Method). Elle gère la navigation au clavier, et chaque menu ne fournit que ses entrées.
 
 ```mermaid
 stateDiagram-v2
-    state "Menu principal" as Menu
-    state "Exploration (Home)" as HomeScreen
-    state "Équipe" as TeamScreen
-    state "Exploration (zone)" as ZoneScreen
-    state "Combat" as Fight
-    state "Choix" as Choice
-    state "Fin" as Ending
+    state "Menu principal (MainMenuView)" as MainMenu
+    state "Options (OptionsView)" as Options
+    state "Exploration (ExplorationView)" as Explore
+    state "Home (HomeView)" as HomeScreen
+    state "Pause (PauseView)" as Pause
+    state "Quêtes (QuestsView)" as Quests
+    state "Combat (CombatView)" as Fight
+    state "Choix (ChoiceView)" as Choice
+    state "Fin (EndView)" as Ending
 
-    [*] --> Menu
-    Menu --> HomeScreen : nouvelle partie
-    Menu --> HomeScreen : charger la partie démo
-    HomeScreen --> TeamScreen : poste de la Home
-    TeamScreen --> HomeScreen : retour
-    HomeScreen --> ZoneScreen : portail allumé
-    ZoneScreen --> HomeScreen : portail
-    ZoneScreen --> Fight : rencontre
+    [*] --> MainMenu
+    MainMenu --> Explore : nouvelle partie
+    MainMenu --> Options
+    Options --> MainMenu : retour
+    MainMenu --> [*] : quitter
+    Explore --> HomeScreen : poste de la Home
+    HomeScreen --> Explore : retour
+    Explore --> Pause : Échap
+    Pause --> Explore : reprendre
+    Pause --> Quests
+    Quests --> Pause : retour
+    Pause --> Options
+    Options --> Pause : retour
+    Pause --> MainMenu : abandonner la partie
+    Explore --> Fight : rencontre
     Fight --> Choice : robot vaincu
-    Fight --> ZoneScreen : exosquelette vaincu, portail suivant allumé
-    Fight --> HomeScreen : toute l'équipe K.O.
-    Fight --> Ending : chef de NEXUS vaincu
-    Choice --> ZoneScreen : reprogrammer ou achever
-    Ending --> [*]
+    Fight --> Explore : exosquelette vaincu
+    Fight --> Explore : défaite, retour à la Home soignée
+    Fight --> Ending : chef de NEXUS vaincu, ou toute l'équipe en réparation
+    Choice --> Explore : reprogrammer ou achever
+    Ending --> MainMenu
 ```
 
-## Points à trancher
+## Ce qui n'est pas codé
 
-Ces choix ne sont pas dans le GDD. Ils sont à valider avant de coder.
+Ces éléments du GDD n'existent pas dans le code, et n'apparaissent donc pas dans les diagrammes (ou y sont signalés) :
 
-1. **Classes ajoutées** : `BaseStats`, `RobotType`, les trois implémentations de `Skill`, `DamageCalculator`, `TurnResult`, `CombatOutcome`, `EventBus`, `PartsStock`, `WantedTier`, `ChoiceResolver`, `Game`, `Zone`, `TileMap`, `Tile`. Leurs noms sont libres.
-2. **Plus aucun robot disponible** (tous en réparation) : toujours ouvert dans le GDD, donc absent des diagrammes.
-3. **XP et niveaux** (SHOULD) : seul `gainXp()` apparaît ; le détail du passage de niveau n'est pas modélisé.
+1. **`OffensiveStrategy`** (COULD) : une IA plus offensive quand la barre de recherche est haute. La Strategy de la section 3 permet de l'ajouter sans toucher à `Combat`.
+2. **Les effets des paliers de la barre** (SHOULD) : le palier est calculé (`WantedTier`), mais seul « Ennemi public » a un effet : le data center est gardé par 3 gardes au lieu d'un (`Campaign.guardsFor()`).
+3. **Pas de classe `Zone`** : une zone est un numéro de `Campaign`, sa carte une `TileMap`.
 
 ## Déjà tranché
 
 - **Surcharge une fois par combat** : `OncePerCombatSkill` (pattern Decorator) marque la compétence, et `Combat` retient celles déjà lancées. N'importe quelle compétence peut devenir à usage unique sans toucher à `Exosquelette`.
-- **`Boss` hérite d'`Exosquelette`**, et non de `Robot` : le chef de NEXUS est un humain en exosquelette, jamais reprogrammable et sans état « Détourné ».
+- **`Boss` hérite d'`Exosquelette`**, et non de `Robot` : le chef de NEXUS est un humain en exosquelette, jamais reprogrammable et sans état « Détourné ». Il est créé au niveau fixe 10 et redéfinit `endsTheGame()`.
 - **Trois événements** : `RobotKilledEvent`, `RobotReprogrammedEvent` et `PilotNeutralizedEvent`, parce que la barre de recherche bouge aussi quand on reprogramme (− 5) ou qu'on neutralise un pilote (+ 10).
+- **Pas d'`instanceof` pour le bonus de type ni pour le choix** : `advantageAgainst()` / `weaknessTo()` et `isReprogrammable()` sont redéfinies par chaque branche.
